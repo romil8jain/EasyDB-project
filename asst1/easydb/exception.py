@@ -15,13 +15,11 @@ class InvalidReference(Exception):
 
 # customized exception for the error code NOT_FOUND (id not found)
 class ObjectDoesNotExist(Exception):   
-    pass
-
+	pass
 # customized exception for the error code TXN_ABORT (update aborted)	
 class TransactionAbort(Exception):	
 	pass
-
 # customized exception for the error code BAD_TABLE, BAD_QUERY, BAD_VALUE, BAD_ROW, and BAD_REQUEST.
 class PacketError(Exception):
-	pass
 
+	pass

@@ -37,7 +37,7 @@ def main():
     if len(args) >= 2 and args[1] == "run":
         import code
         host = args.get(2, "localhost")
-        port = args.get(3, 8080)
+        port = args.get(3, 8087)
                 
         # create db object
         db = easydb.Database(tb)
