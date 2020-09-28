@@ -7,7 +7,9 @@
 from collections.abc import Iterable
 from struct import *
 from .exception import *
+from .packet import *
 import socket
+import time
 
 class Database:
     def __repr__(self):
@@ -89,6 +91,8 @@ class Database:
     def connect(self, host, port):
         ADDR = (host, port)
         self.client.connect(ADDR)
+        time.sleep(1)
+        intial_message = self.client.recv(4096)
         return True
 
     def close(self):
@@ -141,6 +145,14 @@ class Database:
      
        sendVal = request + count + row
        self.client.send(sendVal)
+       time.sleep(1)
+       insert_message = self.client.recv(4096)
+       print(insert_message)
+       (code, pk, version) = unpack_from(">lqq", insert_message)
+       return(pk,version)
+       
+
+       # print(self.client.recv(2048))
 
 
     def update(self, table_name, pk, values, version=None):
@@ -152,8 +164,61 @@ class Database:
         pass
         
     def get(self, table_name, pk):
-        # TODO: implement me
-        pass
+ 
+     if not type(pk) == type(5):
+       raise PacketError()
+      
+     tableNumber = self.tableNamesList.index(table_name) + 1
+  
+     request = pack('>ii', GET, tableNumber)
+     rowNum = pack('>q', pk)
+  
+     sendVal = request + rowNum
+     self.client.send(sendVal)
+     time.sleep(1)
+     get_message = self.client.recv(4096)
+ 
+     get_format=">iqi" # code, version, count, value type, value length
+ 
+     code, version, numRows = unpack_from(get_format, get_message)
+ 
+     offset = calcsize(get_format)
+ 
+     numColumns = len(self.schema[tableNumber-1][1])
+ 
+     # Initiate empty lists for values in each column
+     valType = [None] * numColumns
+     valSize = [None] * numColumns
+     value = [None] * numColumns
+ 
+     for i in range(numColumns):
+ 
+       get_format = ">ii"  # unpack valType and valSize
+ 
+       # Get type of value and its size to set value format string
+       valType[i], valSize[i] = unpack_from(get_format, get_message, offset)
+       checkType = self.schema[tableNumber-1][1][i][1]
+ 
+       if(valType[i] == INTEGER):
+         get_format = ">q"
+ 
+       elif(valType[i] == FLOAT):
+         get_format = ">d"
+ 
+       elif(valType[i] == STRING):
+         get_format = ">%ds"%valSize[i]
+      
+       else:
+         get_format = ">q"
+ 
+       offset+= calcsize(">ii") #increase offset to get value
+       value[i], = unpack_from(get_format, get_message, offset=offset) # get the value
+       if(valType[i] == STRING):
+         value[i] = value[i].decode('utf-8')
+         value[i] = value[i].strip('\x00')
+       offset+= calcsize(get_format) # increase offset to get next value info
+ 
+     return value, version
 
     def scan(self, table_name, op, column_name=None, value=None):
         # TODO: implement me
