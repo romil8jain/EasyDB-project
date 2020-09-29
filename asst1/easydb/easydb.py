@@ -279,7 +279,7 @@ class Database:
     tableNumber = self.tableNamesList.index(table_name) + 1
 
     request = pack('>ii', DROP, tableNumber)
-    rowNum = pack('q', pk)
+    rowNum = pack('>q', pk)
 
     sendVal = request + rowNum
     self.client.send(sendVal)
