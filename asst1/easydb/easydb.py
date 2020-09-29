@@ -82,6 +82,8 @@ class Database:
      intial_message = self.client.recv(4096)
      return True
  def close(self):
+     exit_message = pack(">i", EXIT)
+     self.client.send(exit_message)
      self.client.close()
  def insert(self, table_name, values):
   
@@ -108,13 +110,15 @@ class Database:
      valTypeSize = bytes()
  
      checkType = self.schema[tableNumber-1][1][i][1]
- 
+     
+     if(type(checkType) == str and type(values[i])!=int):
+        raise InvalidReference()
+
      #Check if the type is correct based on schema
      if(type(values[i]) != checkType):
        if (type(values[i]) == int and type(checkType)!=str):
          raise PacketError() 
       
-    
  
      if type(values[i]) == int:
        valType = '>q'
@@ -124,8 +128,7 @@ class Database:
        # check if line exists first, self.schema[tableNumber-1][1][i][1] and
        if type(checkType) == str: # type of string, then it is foreign
          valTypeByte = pack('>i', FOREIGN)
-         if(not values[i] == (self.tableNamesList.index(checkType)+1)):
-           raise InvalidReference()
+         
    
      elif type(values[i]) == str:
        if len(values[i]) % 4 == 0:
@@ -155,21 +158,32 @@ class Database:
    self.client.send(sendVal)
    time.sleep(1)
    insert_message = self.client.recv(4096)
+
+   code, = unpack_from(">l", insert_message)
+
+   if(code == BAD_FOREIGN):
+     raise InvalidReference()
+
+   if(code == BAD_VALUE):
+     raise PacketError()
+
    (code, pk, version) = unpack_from(">lqq", insert_message)
+
+   
+
    return(pk,version)
    
    # print(self.client.recv(2048))
  def update(self, table_name, pk, values, version=None):
      if not type(pk) == int:
        raise PacketError()
-
-     if not (type(version) == int or version ==None):
+ 
+     if not (type(version) == int or version == None):
        raise PacketError()
-
  
      if(type(table_name) == int or table_name not in self.tableNamesList):
        raise PacketError()
-    
+   
     
      tableNumber = self.tableNamesList.index(table_name) + 1
    
@@ -198,7 +212,10 @@ class Database:
        valType = str()
        valTypeByte = bytes()
        valTypeSize = bytes()
- 
+        
+       if(type(checkType) == str and type(values[i])!=int):
+         raise InvalidReference()
+
        if(type(values[i]) != checkType):
          if (type(values[i]) == int and type(checkType)!=str):
            raise PacketError() 
@@ -210,8 +227,7 @@ class Database:
    
          if type(checkType) == str: # type of string, then it is foreign
            valTypeByte = pack('>i', FOREIGN)
-           if(not values[i] == (self.tableNamesList.index(checkType)+1)):
-             raise InvalidReference()
+           
      
        elif type(values[i]) == str:
          if len(values[i]) % 4 == 0:
@@ -240,6 +256,17 @@ class Database:
      self.client.send(sendVal)
      time.sleep(1)
      update_message = self.client.recv(4096)
+ 
+     code, = unpack_from(">l", update_message)
+     if(code == TXN_ABORT):
+       raise TransactionAbort()
+ 
+     if(code == NOT_FOUND):
+       raise ObjectDoesNotExist()
+
+     if(code == BAD_FOREIGN):
+       raise InvalidReference()
+ 
      code, version = unpack_from(">lq", update_message)
      return version
  def drop(self, table_name, pk):
@@ -248,6 +275,9 @@ class Database:
    
  def get(self, table_name, pk):
      if not type(pk) == type(5):
+       raise PacketError()
+    
+     if(not table_name in self.tableNamesList):
        raise PacketError()
     
      tableNumber = self.tableNamesList.index(table_name) + 1
@@ -262,6 +292,11 @@ class Database:
   
      get_format=">iqi" # code, version, count, value type, value length
   
+     code, = unpack_from(">i", get_message)
+ 
+     if(code == NOT_FOUND):
+       raise ObjectDoesNotExist()
+
      code, version, numRows = unpack_from(get_format, get_message)
   
      offset = calcsize(get_format)
