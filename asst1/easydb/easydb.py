@@ -286,8 +286,6 @@ class Database:
     time.sleep(1)
     drop_message = self.client.recv(4096)
 
-    # add drop format line here
-
     code, = unpack_from(">i", drop_message)
 
     if (code == NOT_FOUND):
@@ -357,11 +355,15 @@ class Database:
   
      return value, version
  def scan(self, table_name, op, column_name=None, value=None):
-     # TODO: implement me
-     pass
-                    
- 
- 
- 
+      if (column_name not in self.schema):
+        raise PacketError()
+      
+      if (not type(op) == int):
+        raise PacketError()
+      
+      if (not table_name in self.tableNamesList):
+        raise PacketError()
 
-
+      if (op == AL):
+        # return ids for every row here 
+        pass #pass for now
