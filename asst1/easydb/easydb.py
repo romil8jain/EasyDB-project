@@ -270,8 +270,28 @@ class Database:
      code, version = unpack_from(">lq", update_message)
      return version
  def drop(self, table_name, pk):
-     # TODO: implement me
-     pass
+    if not type(pk) == type(5):
+      raise PacketError()
+
+    if (not table_name in self.tableNamesList):
+      raise PacketError()
+
+    tableNumber = self.tableNamesList.index(table_name) + 1
+
+    request = pack('>ii', DROP, tableNumber)
+    rowNum = pack('q', pk)
+
+    sendVal = request + rowNum
+    self.client.send(sendVal)
+    time.sleep(1)
+    drop_message = self.client.recv(4096)
+
+    # add drop format line here
+
+    code, = unpack_from(">i", drop_message)
+
+    if (code == NOT_FOUND):
+      raise ObjectDoesNotExist()
    
  def get(self, table_name, pk):
      if not type(pk) == type(5):
