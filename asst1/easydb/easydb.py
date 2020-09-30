@@ -354,6 +354,7 @@ class Database:
        offset+= calcsize(get_format) # increase offset to get next value info
   
      return value, version
+
  def scan(self, table_name, op, column_name=None, value=None):
       if (column_name not in self.schema):
         raise PacketError()
@@ -364,6 +365,74 @@ class Database:
       if (not table_name in self.tableNamesList):
         raise PacketError()
 
+      # check if right operand is correct type
+      tableNumber = self.tableNamesList.index(table_name) + 1
+      numColumns = len(self.schema[tableNumber-1][1])
+      colNum = 0
+      checkType = 0
+      valType = str()
+      valTypeByte = bytes()
+      valTypeSize = bytes()
+
+      for i in range(numColumns):
+        if (column_name == self.schema[tableNumber-1][1][i][0]):
+          checkType = self.schema[tableNumber-1][1][i][1]
+          colNum = i + 1
+
+          if (type(checkType) == str and type(value) != int):
+            raise InvalidReference() # or is it InvalidReference() ?
+
+          if (type(value) != checkType):
+            if (type(value) == int and type(checkType) != str):
+              raise PacketError()
+
+          if (type(value) == int):
+            valType = 'q'
+            valTypeByte = pack('>i',INTEGER)
+            valTypeSize = pack('>i', 8)
+
+            if (type(checkType) == str):
+              valTypeByte = pack('>i', FOREIGN)
+
+          elif (type(value) == str):
+            if len(value % 4 == 0):
+              valType = '>' + str(len(value)) + 's'
+              valTypeSize = pack('>i', len(value))
+            else:
+              valType = '>' + str(((len(value) // 4) + 1) * 4 ) + 's'
+              valTypeSize = pack('>i', ((len(value) // 4) + 1) * 4)
+            
+            valTypeByte = pack('>i', STRING)
+
+          elif (type(value) == float):
+            valType = '>d'
+            valTypeByte = pack('>i', FLOAT)
+            valTypeSize = pack('>i', 8)
+
+          else:
+            raise PacketError()
+      
       if (op == AL):
-        # return ids for every row here 
-        pass #pass for now
+        colNum = 0
+
+      request = pack('>ii', SCAN, tableNumber)
+      columnByte = pack('>i', colNum)
+      operatorByte = pack('>i', op)
+      packetVal = pack(valType, value)
+      valByte = valTypeByte + valTypeSize + packetVal
+
+      sendVal = request + columnByte + operatorByte + valByte
+
+      self.client.send(sendVal)
+      time.sleep(1)
+      scan_message = self.client.recv(4096)
+
+      code, = unpack_from(">l", scan_message)
+
+      if(code == BAD_FOREIGN):
+        raise InvalidReference()
+
+      code, count, ids = unpack_from(">liq", scan_message) #not sure if list of ids is unpacked into "q"
+
+      return ids #list of ids
+
