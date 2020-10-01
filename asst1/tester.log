@@ -13,8 +13,8 @@
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:9061), fd: 3 }
-Connected to 127.0.0.1:47624
+Listening: TcpListener { addr: V4(127.0.0.1:1225), fd: 3 }
+Connected to 127.0.0.1:60006
 Request { table_id: 0, command: Exit }
 Disconnected.
 
@@ -32,22 +32,22 @@ Disconnected.
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:5573), fd: 3 }
-Connected to 127.0.0.1:40864
+Listening: TcpListener { addr: V4(127.0.0.1:9788), fd: 3 }
+Connected to 127.0.0.1:52268
 Request { table_id: 1, command: Insert([Text("Jay"), Text("Sung"), Float(5.5), Float(31.2)]) }
 Error(6)
-Request { table_id: 1, command: Insert([Text("Cxdz"), Text("Rnewclaxdqzugoosmhbgflxvsahksupudmschmhwruurdxyxggxvvrnenrjituy"), Float(122.1), Integer(3)]) }
+Request { table_id: 1, command: Insert([Text("P"), Text("Qdjfzcrurgxnp"), Float(160.4), Integer(28)]) }
 Insert(4, 1)
-Connected to 127.0.0.1:40866
+Connected to 127.0.0.1:52270
 Request { table_id: 1, command: Dump }
-Dump("1\t1\tJames\tHartley\t180.3\t38\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n4\t1\tCxdz\tRnewclaxdqzugoosmhbgflxvsahksupudmschmhwruurdxyxggxvvrnenrjituy\t122.1\t3\n")
+Dump("1\t1\tJames\tHartley\t180.3\t38\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n4\t1\tP\tQdjfzcrurgxnp\t160.4\t28\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Request { table_id: 2, command: Insert([Foreign(1), Text("Chequing"), Float(14445.2)]) }
+Request { table_id: 2, command: Insert([Foreign(1), Text("Chequing"), Float(18077.0)]) }
 Insert(5, 1)
-Connected to 127.0.0.1:40868
+Connected to 127.0.0.1:52272
 Request { table_id: 2, command: Dump }
-Dump("1\t1\t1\tNormal\t6500.5\n2\t1\t3\tNormal\t30.2\n3\t1\t3\tNormal\t100.5\n4\t1\t3\tNormal\t73.1\n5\t1\t1\tChequing\t14445.2\n")
+Dump("1\t1\t1\tNormal\t6500.5\n2\t1\t3\tNormal\t30.2\n3\t1\t3\tNormal\t100.5\n4\t1\t3\tNormal\t73.1\n5\t1\t1\tChequing\t18077\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 Request { table_id: 2, command: Insert([Foreign(42), Text("Saving"), Float(1234.53)]) }
@@ -68,20 +68,20 @@ Error(9)
     3. album : foreign(1)
     4. likes : integer
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:7182), fd: 3 }
-Connected to 127.0.0.1:51326
-Request { table_id: 1, command: Insert([Text("Gwm"), Text("Uzytsqbgmplpbxgkvojsfbtduwc"), Text("Rock"), Float(863.65)]) }
+Listening: TcpListener { addr: V4(127.0.0.1:7505), fd: 3 }
+Connected to 127.0.0.1:37440
+Request { table_id: 1, command: Insert([Text("Rlnlujjabojjnfcpyorfjwiemtcldurgurwohyvzfwyrlpmydsvziqzwzrbc"), Text("Ravpswudvczqfpxfsgibqtd"), Text("Pop"), Float(872.92)]) }
 Insert(3, 1)
-Connected to 127.0.0.1:51328
+Connected to 127.0.0.1:37442
 Request { table_id: 1, command: Dump }
-Dump("1\t1\tBeautiful Trauma\tPink\tPop\t15.99\n2\t1\tThe Golden Age\tWoodkid\tAlternative\t21.99\n3\t1\tGwm\tUzytsqbgmplpbxgkvojsfbtduwc\tRock\t863.65\n")
+Dump("1\t1\tBeautiful Trauma\tPink\tPop\t15.99\n2\t1\tThe Golden Age\tWoodkid\tAlternative\t21.99\n3\t1\tRlnlujjabojjnfcpyorfjwiemtcldurgurwohyvzfwyrlpmydsvziqzwzrbc\tRavpswudvczqfpxfsgibqtd\tPop\t872.92\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Request { table_id: 2, command: Insert([Text("Ifxgkscgyabdciufhushqlcelcxytjlzjavphukktctfpjvwnqsxobyxsc"), Float(767.27), Foreign(1), Integer(415701593)]) }
+Request { table_id: 2, command: Insert([Text("Vbkkxuqvrcdkkgvyvqpdxfshiwygbfctqnhyxbntgktffgejipnvtktryucmoidg"), Float(361.84), Foreign(1), Integer(1088717397)]) }
 Insert(2, 1)
-Connected to 127.0.0.1:51330
+Connected to 127.0.0.1:37444
 Request { table_id: 2, command: Dump }
-Dump("1\t1\tBeautiful Trauma\t4.1\t1\t1100000\n2\t1\tIfxgkscgyabdciufhushqlcelcxytjlzjavphukktctfpjvwnqsxobyxsc\t767.27\t1\t415701593\n")
+Dump("1\t1\tBeautiful Trauma\t4.1\t1\t1100000\n2\t1\tVbkkxuqvrcdkkgvyvqpdxfshiwygbfctqnhyxbntgktffgejipnvtktryucmoidg\t361.84\t1\t1088717397\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 
@@ -99,36 +99,36 @@ Disconnected.
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:9937), fd: 3 }
-Connected to 127.0.0.1:55372
-Request { table_id: 1, command: Update(1, 1, [Text("Xjjaturwylglrcpyppihzhedviraazgnghojcbiicvnxfoooygl"), Text("Swljtgwxkoyigafqbogfxqbprzefxmhkrd"), Float(186.8), Integer(26)]) }
+Listening: TcpListener { addr: V4(127.0.0.1:6916), fd: 3 }
+Connected to 127.0.0.1:54768
+Request { table_id: 1, command: Update(1, 1, [Text("Ghltcwyxxxjzrbkwvkitixvglpoatmrbbbsublrpsdun"), Text("Xiiprmuoavevbcurgqnevqhpzoeyifswmwxhifwgczkkqx"), Float(179.2), Integer(40)]) }
 Update(2)
-Connected to 127.0.0.1:55374
+Connected to 127.0.0.1:54772
 Request { table_id: 1, command: Dump }
-Dump("1\t2\tXjjaturwylglrcpyppihzhedviraazgnghojcbiicvnxfoooygl\tSwljtgwxkoyigafqbogfxqbprzefxmhkrd\t186.8\t26\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
+Dump("1\t2\tGhltcwyxxxjzrbkwvkitixvglpoatmrbbbsublrpsdun\tXiiprmuoavevbcurgqnevqhpzoeyifswmwxhifwgczkkqx\t179.2\t40\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 Request { table_id: 1, command: Update(1, 1, [Text("Jay"), Text("Sung"), Float(5.5), Integer(25)]) }
 Error(5)
-Request { table_id: 1, command: Update(1, 2, [Text("Mqpmgmcjsjvl"), Text("Arcbxpbagzakdecwxbpdlcofiilejlxkzvgvxmiccxtuplnefmnjsn"), Float(186.5), Integer(49)]) }
+Request { table_id: 1, command: Update(1, 2, [Text("Vdenrfvtfeecrinbjvrfaxatswinbndhaskcewoojwvmrj"), Text("Rsadsfcnekdschojmtozcfqqxckfblfqplekbrmp"), Float(159.3), Integer(16)]) }
 Update(3)
-Connected to 127.0.0.1:55376
+Connected to 127.0.0.1:54774
 Request { table_id: 1, command: Dump }
-Dump("1\t3\tMqpmgmcjsjvl\tArcbxpbagzakdecwxbpdlcofiilejlxkzvgvxmiccxtuplnefmnjsn\t186.5\t49\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
+Dump("1\t3\tVdenrfvtfeecrinbjvrfaxatswinbndhaskcewoojwvmrj\tRsadsfcnekdschojmtozcfqqxckfblfqplekbrmp\t159.3\t16\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Request { table_id: 1, command: Update(1, 0, [Text("Htcvtgddwkthanobckvrxkkvyaqzkmrrgjdfqkunwplspwzmzxlgakfrsn"), Text("Rfomxgwbidbejthwaiyszjdmogldvjfguxyrstioaqme"), Float(157.7), Integer(62)]) }
+Request { table_id: 1, command: Update(1, 0, [Text("Umwavbyplyxtkpopjljrazoir"), Text("Rlfsnxflnfewbtqe"), Float(184.0), Integer(43)]) }
 Update(4)
-Connected to 127.0.0.1:55378
+Connected to 127.0.0.1:54776
 Request { table_id: 1, command: Dump }
-Dump("1\t4\tHtcvtgddwkthanobckvrxkkvyaqzkmrrgjdfqkunwplspwzmzxlgakfrsn\tRfomxgwbidbejthwaiyszjdmogldvjfguxyrstioaqme\t157.7\t62\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
+Dump("1\t4\tUmwavbyplyxtkpopjljrazoir\tRlfsnxflnfewbtqe\t184\t43\n2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Request { table_id: 2, command: Update(1, 0, [Foreign(1), Text("Chequing"), Float(11279.2)]) }
+Request { table_id: 2, command: Update(1, 0, [Foreign(1), Text("Chequing"), Float(14330.3)]) }
 Update(2)
-Connected to 127.0.0.1:55380
+Connected to 127.0.0.1:54778
 Request { table_id: 2, command: Dump }
-Dump("1\t2\t1\tChequing\t11279.2\n2\t1\t3\tNormal\t30.2\n3\t1\t3\tNormal\t100.5\n4\t1\t3\tNormal\t73.1\n")
+Dump("1\t2\t1\tChequing\t14330.3\n2\t1\t3\tNormal\t30.2\n3\t1\t3\tNormal\t100.5\n4\t1\t3\tNormal\t73.1\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 Request { table_id: 2, command: Update(1, 0, [Foreign(42), Text("Saving"), Float(1234.53)]) }
@@ -151,20 +151,20 @@ Error(2)
     3. album : foreign(1)
     4. likes : integer
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:8098), fd: 3 }
-Connected to 127.0.0.1:44124
-Request { table_id: 1, command: Update(1, 1, [Text("Twpdmbzdsveufzbupylwvxmnenof"), Text("Ucubrmotonydnxgsnbeimroanlloho"), Text("EDM"), Float(878.22)]) }
+Listening: TcpListener { addr: V4(127.0.0.1:9429), fd: 3 }
+Connected to 127.0.0.1:48394
+Request { table_id: 1, command: Update(1, 1, [Text("Jwqornffkhgahsvxjaecxitrafaxrdheaqctmjirujajouoeykfn"), Text("Xxrjdmvdkmicxorsonxhdlzgdlaehlqltb"), Text("Classical"), Float(207.24)]) }
 Update(2)
-Connected to 127.0.0.1:44126
+Connected to 127.0.0.1:48396
 Request { table_id: 1, command: Dump }
-Dump("1\t2\tTwpdmbzdsveufzbupylwvxmnenof\tUcubrmotonydnxgsnbeimroanlloho\tEDM\t878.22\n2\t1\tThe Golden Age\tWoodkid\tAlternative\t21.99\n")
+Dump("1\t2\tJwqornffkhgahsvxjaecxitrafaxrdheaqctmjirujajouoeykfn\tXxrjdmvdkmicxorsonxhdlzgdlaehlqltb\tClassical\t207.24\n2\t1\tThe Golden Age\tWoodkid\tAlternative\t21.99\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Request { table_id: 2, command: Update(1, 0, [Text("Eiwqghomgojcsqml"), Float(779.6), Foreign(2), Integer(1682158758)]) }
+Request { table_id: 2, command: Update(1, 0, [Text("Rxafnnsthfqgrucxfnrhgroidtsurfpqcwtinfkuzqinaooqycpyguls"), Float(538.31), Foreign(2), Integer(319777316)]) }
 Update(2)
-Connected to 127.0.0.1:44128
+Connected to 127.0.0.1:48398
 Request { table_id: 2, command: Dump }
-Dump("1\t2\tEiwqghomgojcsqml\t779.6\t2\t1682158758\n")
+Dump("1\t2\tRxafnnsthfqgrucxfnrhgroidtsurfpqcwtinfkuzqinaooqycpyguls\t538.31\t2\t319777316\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 
@@ -182,13 +182,13 @@ Disconnected.
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:4357), fd: 3 }
-Connected to 127.0.0.1:38900
+Listening: TcpListener { addr: V4(127.0.0.1:5667), fd: 3 }
+Connected to 127.0.0.1:39240
 Request { table_id: 1, command: Drop(300) }
 Error(2)
 Request { table_id: 1, command: Drop(2) }
 Drop
-Connected to 127.0.0.1:38902
+Connected to 127.0.0.1:39242
 Request { table_id: 1, command: Dump }
 Dump("1\t1\tJames\tHartley\t180.3\t38\n3\t1\tAlice\tHarris\t163.2\t21\n")
 Request { table_id: 1, command: Exit }
@@ -209,18 +209,18 @@ Disconnected.
     3. album : foreign(1)
     4. likes : integer
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:9128), fd: 3 }
-Connected to 127.0.0.1:34452
+Listening: TcpListener { addr: V4(127.0.0.1:1607), fd: 3 }
+Connected to 127.0.0.1:55686
 Request { table_id: 2, command: Drop(1) }
 Drop
-Connected to 127.0.0.1:34454
+Connected to 127.0.0.1:55688
 Request { table_id: 2, command: Dump }
 Dump("")
 Request { table_id: 1, command: Exit }
 Disconnected.
 Request { table_id: 1, command: Drop(1) }
 Drop
-Connected to 127.0.0.1:34456
+Connected to 127.0.0.1:55690
 Request { table_id: 1, command: Dump }
 Dump("2\t1\tThe Golden Age\tWoodkid\tAlternative\t21.99\n")
 Request { table_id: 1, command: Exit }
@@ -240,8 +240,8 @@ Disconnected.
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:8302), fd: 3 }
-Connected to 127.0.0.1:56028
+Listening: TcpListener { addr: V4(127.0.0.1:8325), fd: 3 }
+Connected to 127.0.0.1:33712
 Request { table_id: 1, command: Get(100) }
 Error(2)
 Request { table_id: 1, command: Get(1) }
@@ -264,8 +264,8 @@ Get(1, [Foreign(3), Text("Normal"), Float(30.2)])
     3. album : foreign(1)
     4. likes : integer
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:8696), fd: 3 }
-Connected to 127.0.0.1:53122
+Listening: TcpListener { addr: V4(127.0.0.1:2959), fd: 3 }
+Connected to 127.0.0.1:47742
 Request { table_id: 1, command: Get(1) }
 Get(1, [Text("Beautiful Trauma"), Text("Pink"), Text("Pop"), Float(15.99)])
 Request { table_id: 2, command: Get(1) }
@@ -285,8 +285,8 @@ Get(1, [Text("Beautiful Trauma"), Float(4.1), Foreign(1), Integer(1100000)])
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:5613), fd: 3 }
-Connected to 127.0.0.1:42222
+Listening: TcpListener { addr: V4(127.0.0.1:8419), fd: 3 }
+Connected to 127.0.0.1:33250
 
 -------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab1-07-scan.py --------
 
@@ -303,5 +303,5 @@ Connected to 127.0.0.1:42222
     3. album : foreign(1)
     4. likes : integer
 ]
-Listening: TcpListener { addr: V4(127.0.0.1:3777), fd: 3 }
-Connected to 127.0.0.1:49136
+Listening: TcpListener { addr: V4(127.0.0.1:2322), fd: 3 }
+Connected to 127.0.0.1:58622

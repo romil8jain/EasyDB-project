@@ -356,9 +356,6 @@ class Database:
      return value, version
 
  def scan(self, table_name, op, column_name=None, value=None):
-      if (column_name not in self.schema):
-        raise PacketError()
-      
       if (not type(op) == int):
         raise PacketError()
       
@@ -380,7 +377,7 @@ class Database:
           colNum = i + 1
 
           if (type(checkType) == str and type(value) != int):
-            raise InvalidReference() # or is it InvalidReference() ?
+            raise PacketError()
 
           if (type(value) != checkType):
             if (type(value) == int and type(checkType) != str):
@@ -409,8 +406,8 @@ class Database:
             valTypeByte = pack('>i', FLOAT)
             valTypeSize = pack('>i', 8)
 
-          else:
-            raise PacketError()
+        else:
+          raise PacketError()
       
       if (op == AL):
         colNum = 0
