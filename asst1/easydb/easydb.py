@@ -10,13 +10,17 @@ from .exception import *
 from .packet import *
 import socket
 import time
+ 
+ 
 class Database:
  def __repr__(self):
-     return "<EasyDB Database object>"
+   return "<EasyDB Database object>"
+ 
  def __init__(self, tables):
    self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
    self.tableNamesList = list()
    self.schema = tables
+ #  self.tableColumnNamesList = [[]]
  
    try:
      iterator = iter(tables)
@@ -29,9 +33,9 @@ class Database:
      tableName = tables[i][0]
  
      # Check if table name is a string
-     if not isinstance(tableName,str):
+     if not isinstance(tableName, str):
        raise TypeError
-   
+ 
      # Check if table name is blank or starts with illegal character
      if(tableName == "" or not tableName[0].isalpha()):
        raise ValueError
@@ -42,16 +46,16 @@ class Database:
      else:
        raise ValueError
  
-     columnNamesList = list() # for duplicate column check, new created for every table
+     columnNamesList = list()  # for duplicate column check, new created for every table
  
      for j in range(len(tables[i][1])):
  
        columnName = tables[i][1][j][0]
  
        # Check if column name is a string
-       if not isinstance(columnName,str):
+       if not isinstance(columnName, str):
          raise TypeError
-         
+ 
        # Check if column name is blank or starts with illegal character
        if(columnName == "" or columnName == "id" or not columnName[0].isalpha()):
          raise ValueError
@@ -61,35 +65,37 @@ class Database:
          columnNamesList.append(columnName)
        else:
          raise ValueError
-     
-       checkType = tables[i][1][j][1] # type of column
+ 
+       checkType = tables[i][1][j][1]  # type of column
  
        # Check if table is referencing itself, if not, make dictionary of tables referenced by it
-       if isinstance(checkType,str):
+       if isinstance(checkType, str):
          if checkType == tableName:
            raise IntegrityError()
          elif(checkType not in self.tableNamesList):
-            raise IntegrityError()
-          
+           raise IntegrityError()
  
        # Check if type of value is str, int or float, these are arbitrary values
        elif not (checkType == int or checkType == float or checkType == str):
          raise ValueError
+ 
  def connect(self, host, port):
-     ADDR = (host, port)
-     self.client.connect(ADDR)
-     time.sleep(1)
-     intial_message = self.client.recv(4096)
-     return True
+   ADDR = (host, port)
+   self.client.connect(ADDR)
+   time.sleep(1)
+   intial_message = self.client.recv(4096)
+   return True
+ 
  def close(self):
-     exit_message = pack(">i", EXIT)
-     self.client.send(exit_message)
-     self.client.close()
+   exit_message = pack(">i", EXIT)
+   self.client.send(exit_message)
+   self.client.close()
+ 
  def insert(self, table_name, values):
-  
+ 
    if(type(table_name) == int or table_name not in self.tableNamesList):
-     raise PacketError()
      print("Invalid or illegal table_name")
+     raise PacketError()
  
    tableNumber = self.tableNamesList.index(table_name) + 1
  
@@ -100,7 +106,8 @@ class Database:
    row = bytes()
  
    if(not len(values) == len(self.schema[tableNumber-1][1])):
-     print(f"Packet error: length of values was {len(values)} but inputs desired were {len(self.schema[tableNumber-1][1])}")
+     print(
+         f"Packet error: length of values was {len(values)} but inputs desired were {len(self.schema[tableNumber-1][1])}")
      raise PacketError()
  
    for i in range(len(values)):
@@ -110,15 +117,14 @@ class Database:
      valTypeSize = bytes()
  
      checkType = self.schema[tableNumber-1][1][i][1]
-     
-     if(type(checkType) == str and type(values[i])!=int):
-        raise InvalidReference()
-
-     #Check if the type is correct based on schema
+ 
+     if(type(checkType) == str and type(values[i]) != int):
+         raise InvalidReference()
+ 
+     # Check if the type is correct based on schema
      if(type(values[i]) != checkType):
-       if (type(values[i]) == int and type(checkType)!=str):
-         raise PacketError() 
-      
+       if (type(values[i]) == int and type(checkType) != str):
+         raise PacketError()
  
      if type(values[i]) == int:
        valType = '>q'
@@ -126,16 +132,15 @@ class Database:
        valTypeSize = pack('>i', 8)
  
        # check if line exists first, self.schema[tableNumber-1][1][i][1] and
-       if type(checkType) == str: # type of string, then it is foreign
+       if type(checkType) == str:  # type of string, then it is foreign
          valTypeByte = pack('>i', FOREIGN)
-         
-   
+ 
      elif type(values[i]) == str:
        if len(values[i]) % 4 == 0:
          valType = '>' + str(len(values[i])) + 's'
          valTypeSize = pack('>i', len(values[i]))
        else:
-         valType = '>' + str(((len(values[i]) // 4) + 1) * 4 ) + 's'
+         valType = '>' + str(((len(values[i]) // 4) + 1) * 4) + 's'
          valTypeSize = pack('>i', ((len(values[i]) // 4) + 1) * 4)
  
        values[i] = bytes(values[i], 'utf-8')
@@ -145,294 +150,322 @@ class Database:
        valType = '>d'
        valTypeByte = pack('>i', FLOAT)
        valTypeSize = pack('>i', 8)
-      
+ 
      else:
        raise PacketError()
-   
  
      packetVal = pack(valType, values[i])
      row = row + valTypeByte + valTypeSize + packetVal
- 
  
    sendVal = request + count + row
    self.client.send(sendVal)
    time.sleep(1)
    insert_message = self.client.recv(4096)
-
+ 
    code, = unpack_from(">l", insert_message)
+ 
+   if(code == BAD_FOREIGN):
+     raise InvalidReference()
+ 
+   if(code == BAD_VALUE):
+     raise PacketError()
+ 
+   (code, pk, version) = unpack_from(">lqq", insert_message)
+ 
+   return(pk, version)
+ 
+  # print(self.client.recv(2048))
+ def update(self, table_name, pk, values, version=None):
+   if not type(pk) == int:
+     raise PacketError()
 
+   if not (type(version) == int or version == None):
+     raise PacketError()
+
+   if(type(table_name) == int or table_name not in self.tableNamesList):
+   	 raise PacketError()
+  
+    
+   tableNumber = self.tableNamesList.index(table_name) + 1
+  
+   request = pack('>ii', UPDATE, tableNumber)
+
+   if(not len(values) == len(self.schema[tableNumber-1][1])):
+     raise PacketError()
+  
+   # if version is none, it should be set to 0
+   if(version == None):
+     versionVal = pack('>q', 0)
+   else:
+     versionVal = pack('>q', version)
+  
+   pkVal = pack('>q', pk)
+   count = pack('>i', len(values))
+  
+   sendVal = request + pkVal + versionVal + count
+      
+   row = bytes()
+  
+   for i in range(len(values)):
+  
+     checkType = self.schema[tableNumber-1][1][i][1]
+     valType = str()
+     valTypeByte = bytes()
+     valTypeSize = bytes()
+    
+     if(type(checkType) == str and type(values[i])!=int):
+       raise InvalidReference()
+     
+     if(type(values[i]) != checkType):
+       if (type(values[i]) == int and type(checkType)!=str):
+         raise PacketError()
+
+     if type(values[i]) == int:
+       valType = '>q'
+       valTypeByte = pack('>i', INTEGER)
+       valTypeSize = pack('>i', 8)
+  
+       if type(checkType) == str: # type of string, then it is foreign
+         valTypeByte = pack('>i', FOREIGN)
+        
+  
+     elif type(values[i]) == str:
+       if len(values[i]) % 4 == 0:
+         valType = '>' + str(len(values[i])) + 's'
+         valTypeSize = pack('>i', len(values[i]))
+       else:
+         valType = '>' + str(((len(values[i]) // 4) + 1) * 4 ) + 's'
+         valTypeSize = pack('>i', ((len(values[i]) // 4) + 1) * 4)
+  
+       values[i] = bytes(values[i], 'utf-8')
+       valTypeByte = pack('>i', STRING)
+  
+     elif type(values[i]) == type (5.3):
+       valType = '>d'
+       valTypeByte = pack('>i', FLOAT)
+       valTypeSize = pack('>i', 8)
+      
+     else:
+       raise PacketError()
+  
+     packetVal = pack(valType, values[i])
+     row = row + valTypeByte + valTypeSize + packetVal
+  
+  
+   sendVal += row
+   self.client.send(sendVal)
+   time.sleep(1)
+   update_message = self.client.recv(4096)
+   code, = unpack_from(">l", update_message)
+
+   if(code == TXN_ABORT):
+     raise TransactionAbort()
+
+   if(code == NOT_FOUND):
+     raise ObjectDoesNotExist()
    if(code == BAD_FOREIGN):
      raise InvalidReference()
 
-   if(code == BAD_VALUE):
+   code, version = unpack_from(">lq", update_message)
+   return version
+ 
+ def drop(self, table_name, pk):
+
+   if not type(pk) == type(5):
      raise PacketError()
 
-   (code, pk, version) = unpack_from(">lqq", insert_message)
+   if (not table_name in self.tableNamesList):
+     raise PacketError()
 
-   
+   tableNumber = self.tableNamesList.index(table_name) + 1
+   request = pack('>ii', DROP, tableNumber)
+   rowNum = pack('>q', pk)
+   sendVal = request + rowNum
+   self.client.send(sendVal)
+   time.sleep(1)
+   drop_message = self.client.recv(4096)
 
-   return(pk,version)
-   
-   # print(self.client.recv(2048))
- def update(self, table_name, pk, values, version=None):
-     if not type(pk) == int:
-       raise PacketError()
+   code, = unpack_from(">i", drop_message)
+   if (code == NOT_FOUND):
+     raise ObjectDoesNotExist()
  
-     if not (type(version) == int or version == None):
-       raise PacketError()
- 
-     if(type(table_name) == int or table_name not in self.tableNamesList):
-       raise PacketError()
-   
+ def get(self, table_name, pk):
+   if not type(pk) == type(5):
+     raise PacketError()
     
-     tableNumber = self.tableNamesList.index(table_name) + 1
-   
-     request = pack('>ii', UPDATE, tableNumber)
- 
-     if(not len(values) == len(self.schema[tableNumber-1][1])):
-       raise PacketError()
-     
-     # if version is none, it should be set to 0
-     if(version == None):
-       versionVal = pack('>q', 0)
-     else:
-       versionVal = pack('>q', version)
-     pkVal = pack('>q', pk)
-     count = pack('>i', len(values))
-   
-   
-     sendVal = request + pkVal + versionVal + count
-   
-   
-     row = bytes()
-   
-     for i in range(len(values)):
-   
-       checkType = self.schema[tableNumber-1][1][i][1]
-       valType = str()
-       valTypeByte = bytes()
-       valTypeSize = bytes()
-        
-       if(type(checkType) == str and type(values[i])!=int):
-         raise InvalidReference()
+   if(not table_name in self.tableNamesList):
+     raise PacketError()
+    
+   tableNumber = self.tableNamesList.index(table_name) + 1
+   request = pack('>ii', GET, tableNumber)
+   rowNum = pack('>q', pk)
+   sendVal = request + rowNum
+   self.client.send(sendVal)
+   time.sleep(1)
+   get_message = self.client.recv(4096)
 
-       if(type(values[i]) != checkType):
-         if (type(values[i]) == int and type(checkType)!=str):
-           raise PacketError() 
+   get_format=">iqi" # code, version, count, value type, value length
+   code, = unpack_from(">i", get_message)
+   if(code == NOT_FOUND):
+     raise ObjectDoesNotExist()
+
+   code, version, numRows = unpack_from(get_format, get_message)
+   offset = calcsize(get_format)
+   numColumns = len(self.schema[tableNumber-1][1])
+   # Initiate empty lists for values in each column
+   valType = [None] * numColumns
+   valSize = [None] * numColumns
+   value = [None] * numColumns
+
+   for i in range(numColumns):
+      get_format = ">ii"  # unpack valType and valSize
+      # Get type of value and its size to set value format string
+      valType[i], valSize[i] = unpack_from(get_format, get_message, offset)
+      checkType = self.schema[tableNumber-1][1][i][1]
+
+      if(valType[i] == INTEGER):
+        get_format = ">q"
+      elif(valType[i] == FLOAT):
+        get_format = ">d"
+      elif(valType[i] == STRING):
+        get_format = ">%ds"%valSize[i]
+      else:
+       get_format = ">q"
+
+      offset+= calcsize(">ii") #increase offset to get value
+      value[i], = unpack_from(get_format, get_message, offset=offset) # get the value
+
+      if(valType[i] == STRING):
+        value[i] = value[i].decode('utf-8')
+        value[i] = value[i].strip('\x00')
+    
+      offset+= calcsize(get_format) # increase offset to get next value info
+   return value, version
  
-       if type(values[i]) == int:
+ def scan(self, table_name, op, column_name=None, value=None):
+
+   if (not type(op) == int):
+     raise PacketError()
+   if(op < 1 or op>7):
+     raise PacketError()
+ 
+   if (not table_name in self.tableNamesList):
+     raise PacketError()
+ 
+   # check if right operand is correct type
+   tableNumber = self.tableNamesList.index(table_name) + 1
+   numColumns = len(self.schema[tableNumber-1][1])
+   colNum = 0
+   checkType = 0
+   valType = str()
+   valTypeByte = bytes()
+   valTypeSize = bytes()
+ 
+   for i in range(numColumns):
+     if (column_name == self.schema[tableNumber-1][1][i][0]):
+       checkType = self.schema[tableNumber-1][1][i][1]
+       colNum = i + 1
+ 
+       if (type(checkType) == str and type(value) != int):
+         raise PacketError() # or is it InvalidReference() ?
+ 
+       if (type(value) != checkType):
+         if (type(value) == int and type(checkType) != str):
+           raise PacketError()
+ 
+       if (type(value) == int):
          valType = '>q'
-         valTypeByte = pack('>i', INTEGER)
+         valTypeByte = pack('>i',INTEGER)
          valTypeSize = pack('>i', 8)
-   
-         if type(checkType) == str: # type of string, then it is foreign
+ 
+         if (type(checkType) == str):
            valTypeByte = pack('>i', FOREIGN)
-           
-     
-       elif type(values[i]) == str:
-         if len(values[i]) % 4 == 0:
-           valType = '>' + str(len(values[i])) + 's'
-           valTypeSize = pack('>i', len(values[i]))
+ 
+       elif (type(value) == str):
+         if len(value) % 4 == 0:
+           valType = '>' + str(len(value)) + 's'
+           valTypeSize = pack('>i', len(value))
          else:
-           valType = '>' + str(((len(values[i]) // 4) + 1) * 4 ) + 's'
-           valTypeSize = pack('>i', ((len(values[i]) // 4) + 1) * 4)
-   
-         values[i] = bytes(values[i], 'utf-8')
+           valType = '>' + str(((len(value) // 4) + 1) * 4 ) + 's'
+           valTypeSize = pack('>i', ((len(value) // 4) + 1) * 4)
+      
+         value = bytes(value, 'utf-8')
          valTypeByte = pack('>i', STRING)
-   
-       elif type(values[i]) == type (5.3):
+ 
+       elif (type(value) == float):
          valType = '>d'
          valTypeByte = pack('>i', FLOAT)
          valTypeSize = pack('>i', 8)
-         
+ 
        else:
          raise PacketError()
-   
-       packetVal = pack(valType, values[i])
-       row = row + valTypeByte + valTypeSize + packetVal
-   
-   
-     sendVal += row
-     self.client.send(sendVal)
-     time.sleep(1)
-     update_message = self.client.recv(4096)
+    # Assume I have right column number and have correct valType, valTypeByte and valTypeSize
  
-     code, = unpack_from(">l", update_message)
-     if(code == TXN_ABORT):
-       raise TransactionAbort()
+   valByte = bytes()
  
-     if(code == NOT_FOUND):
-       raise ObjectDoesNotExist()
+   if(colNum == 0 and op!= operator.AL and column_name!="id"): # column name doesnt exist
+     raise PacketError()
 
-     if(code == BAD_FOREIGN):
-       raise InvalidReference()
+   if(column_name=="id"):
+     colNum = 0
+     valType = ">q"
+     valTypeByte = pack('>i', FOREIGN)
+     valTypeSize = pack('>i', 8)
+     packetVal = pack(valType, value)
+     valByte = valTypeByte + valTypeSize +packetVal # Assuming no packetVal is passed here
  
-     code, version = unpack_from(">lq", update_message)
-     return version
- def drop(self, table_name, pk):
-    if not type(pk) == type(5):
-      raise PacketError()
+   elif  (op == operator.AL):
+     colNum = 0
+     valTypeByte = pack('>i', NULL)
+     valTypeSize = pack('>i', 0)
+     valByte = valTypeByte + valTypeSize # Assuming no packetVal is passed here
+   else:
+     packetVal = pack(valType, value)
+     valByte = valTypeByte + valTypeSize + packetVal
+ 
+ 
+ 
+   request = pack('>ii', SCAN, tableNumber)
+   columnByte = pack('>i', colNum)
+   operatorByte = pack('>i', op)
+  
+ 
+   sendVal = request + columnByte + operatorByte + valByte
+ 
+   self.client.send(sendVal)
+   time.sleep(1)
+   scan_message = self.client.recv(4096)
+ 
+   code, = unpack_from(">l", scan_message)
+ 
+   if(code == BAD_FOREIGN):
+     raise InvalidReference()
 
-    if (not table_name in self.tableNamesList):
-      raise PacketError()
+   if(code != OK):
+     print(f"Code: {code}")
 
-    tableNumber = self.tableNamesList.index(table_name) + 1
+   if(code == BAD_VALUE or code == BAD_QUERY):
+     raise PacketError()
 
-    request = pack('>ii', DROP, tableNumber)
-    rowNum = pack('>q', pk)
 
-    sendVal = request + rowNum
-    self.client.send(sendVal)
-    time.sleep(1)
-    drop_message = self.client.recv(4096)
-
-    code, = unpack_from(">i", drop_message)
-
-    if (code == NOT_FOUND):
-      raise ObjectDoesNotExist()
-   
- def get(self, table_name, pk):
-     if not type(pk) == type(5):
-       raise PacketError()
+ 
+   # Look into bad query error
+ 
+   code, count = unpack_from(">li", scan_message)
+ 
+   offset = calcsize(">li")
+   if count == 0:
+     return []
+  
+   list_ids = [None] * count
+ 
+   for i in range(count):
+     list_ids[i], = unpack_from(">q", scan_message, offset = offset)
+     offset+= calcsize(">q")
+  
+   return list_ids
     
-     if(not table_name in self.tableNamesList):
-       raise PacketError()
-    
-     tableNumber = self.tableNamesList.index(table_name) + 1
-  
-     request = pack('>ii', GET, tableNumber)
-     rowNum = pack('>q', pk)
-  
-     sendVal = request + rowNum
-     self.client.send(sendVal)
-     time.sleep(1)
-     get_message = self.client.recv(4096)
-  
-     get_format=">iqi" # code, version, count, value type, value length
-  
-     code, = unpack_from(">i", get_message)
  
-     if(code == NOT_FOUND):
-       raise ObjectDoesNotExist()
+ 
 
-     code, version, numRows = unpack_from(get_format, get_message)
-  
-     offset = calcsize(get_format)
-  
-     numColumns = len(self.schema[tableNumber-1][1])
-  
-     # Initiate empty lists for values in each column
-     valType = [None] * numColumns
-     valSize = [None] * numColumns
-     value = [None] * numColumns
-  
-     for i in range(numColumns):
-  
-       get_format = ">ii"  # unpack valType and valSize
-  
-       # Get type of value and its size to set value format string
-       valType[i], valSize[i] = unpack_from(get_format, get_message, offset)
-       checkType = self.schema[tableNumber-1][1][i][1]
-  
-       if(valType[i] == INTEGER):
-         get_format = ">q"
-  
-       elif(valType[i] == FLOAT):
-         get_format = ">d"
-  
-       elif(valType[i] == STRING):
-         get_format = ">%ds"%valSize[i]
-    
-       else:
-         get_format = ">q"
-  
-       offset+= calcsize(">ii") #increase offset to get value
-       value[i], = unpack_from(get_format, get_message, offset=offset) # get the value
-       if(valType[i] == STRING):
-         value[i] = value[i].decode('utf-8')
-         value[i] = value[i].strip('\x00')
-       offset+= calcsize(get_format) # increase offset to get next value info
-  
-     return value, version
-
- def scan(self, table_name, op, column_name=None, value=None):
-      if (column_name not in self.schema):
-        raise PacketError()
-      
-      if (not type(op) == int):
-        raise PacketError()
-      
-      if (not table_name in self.tableNamesList):
-        raise PacketError()
-
-      # check if right operand is correct type
-      tableNumber = self.tableNamesList.index(table_name) + 1
-      numColumns = len(self.schema[tableNumber-1][1])
-      colNum = 0
-      checkType = 0
-      valType = str()
-      valTypeByte = bytes()
-      valTypeSize = bytes()
-
-      for i in range(numColumns):
-        if (column_name == self.schema[tableNumber-1][1][i][0]):
-          checkType = self.schema[tableNumber-1][1][i][1]
-          colNum = i + 1
-
-          if (type(checkType) == str and type(value) != int):
-            raise InvalidReference() # or is it InvalidReference() ?
-
-          if (type(value) != checkType):
-            if (type(value) == int and type(checkType) != str):
-              raise PacketError()
-
-          if (type(value) == int):
-            valType = 'q'
-            valTypeByte = pack('>i',INTEGER)
-            valTypeSize = pack('>i', 8)
-
-            if (type(checkType) == str):
-              valTypeByte = pack('>i', FOREIGN)
-
-          elif (type(value) == str):
-            if len(value % 4 == 0):
-              valType = '>' + str(len(value)) + 's'
-              valTypeSize = pack('>i', len(value))
-            else:
-              valType = '>' + str(((len(value) // 4) + 1) * 4 ) + 's'
-              valTypeSize = pack('>i', ((len(value) // 4) + 1) * 4)
-            
-            valTypeByte = pack('>i', STRING)
-
-          elif (type(value) == float):
-            valType = '>d'
-            valTypeByte = pack('>i', FLOAT)
-            valTypeSize = pack('>i', 8)
-
-          else:
-            raise PacketError()
-      
-      if (op == AL):
-        colNum = 0
-
-      request = pack('>ii', SCAN, tableNumber)
-      columnByte = pack('>i', colNum)
-      operatorByte = pack('>i', op)
-      packetVal = pack(valType, value)
-      valByte = valTypeByte + valTypeSize + packetVal
-
-      sendVal = request + columnByte + operatorByte + valByte
-
-      self.client.send(sendVal)
-      time.sleep(1)
-      scan_message = self.client.recv(4096)
-
-      code, = unpack_from(">l", scan_message)
-
-      if(code == BAD_FOREIGN):
-        raise InvalidReference()
-
-      code, count, ids = unpack_from(">liq", scan_message) #not sure if list of ids is unpacked into "q"
-
-      return ids #list of ids
 
