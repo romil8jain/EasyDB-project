@@ -10,6 +10,7 @@
 class MetaTable(type):
 
     def __init__(cls, name, bases, attrs):
+        #print(attrs)
         pass
 
     # Returns an existing object from the table, if it exists.
