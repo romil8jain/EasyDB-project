@@ -5,13 +5,14 @@
 # Definition for an ORM database table and its metaclass
 #
 
+import collections
+
 # metaclass of table
 # Implement me or change me. (e.g. use class decorator instead)
 class MetaTable(type):
 
     def __init__(cls, name, bases, attrs):
-        #print(attrs)
-        pass
+        super().__init__(name, bases, attrs)
 
     # Returns an existing object from the table, if it exists.
     #   db: database object, the database to get the object from
@@ -32,6 +33,10 @@ class MetaTable(type):
     # kwarg: the query argument for comparing
     def count(cls, db, **kwarg):
         return list()
+
+    @classmethod
+    def __prepare__(mcs, name, bases, **kwargs):
+        return collections.OrderedDict()
 
 # table class
 # Implement me.
