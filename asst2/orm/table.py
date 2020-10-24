@@ -12,7 +12,8 @@ import collections
 class MetaTable(type):
 
     def __init__(cls, name, bases, attrs):
-        super().__init__(name, bases, attrs)
+        #super().__init__(name, bases, attrs)
+        pass
 
     # Returns an existing object from the table, if it exists.
     #   db: database object, the database to get the object from
