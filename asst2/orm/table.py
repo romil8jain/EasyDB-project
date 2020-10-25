@@ -6,7 +6,7 @@
 #
 
 import collections
-import field
+import orm.field
 # metaclass of table
 # Implement me or change me. (e.g. use class decorator instead)
 # When you import schema, the metatable is automatically created
@@ -22,7 +22,7 @@ class MetaTable(type):
             # I think my code works better in this case,
             # I have kept your code in end of document  
             # Set the name of all class variables to _name
-            MetaTable.class_var_list[class_name] = [attr for attr in attrs.items() if not callable(getattr(cls, attr)) and not attr.startswith("__")]
+            MetaTable.class_var_list[class_name] = [attr for attr in attrs if not callable(getattr(cls, attr)) and not attr.startswith("__")]
             for attr in MetaTable.class_var_list[class_name]:
                 getattr(cls,attr).setname(attr) # mostly works correctly
 

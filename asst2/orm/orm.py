@@ -7,7 +7,7 @@
 
 from .easydb import Database
 from .table import MetaTable
-import field
+import orm.field
 
 # Return a database object that is initialized, but not yet connected.
 #   database_name: str, database name
