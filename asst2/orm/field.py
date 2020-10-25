@@ -9,7 +9,7 @@ from collections.abc import Iterable
 class Integer:   
     def __init__(self, blank=False, default=None, choices=None): 
          
-        if(self.default = None):
+        if(default == None):
             self.default = 0 # if default not specified, it should be 0
 
         self.blank = blank
@@ -57,7 +57,7 @@ class Integer:
 class Float: 
     def __init__(self, blank=False, default=None, choices=None):
 
-        if(self.default = None):
+        if(default == None):
             self.default = 0.0 # if default not specified, it should be 0
 
         self.blank = blank
@@ -104,7 +104,7 @@ class Float:
 class String:
     def __init__(self, blank=False, default=None, choices=None):
 
-        if(self.default = None):
+        if(default == None):
             self.default = "" # if default not specified, it should be 0
 
         self.blank = blank
@@ -164,7 +164,7 @@ class Foreign:
 
     def __set__(self, inst, value):
         
-        if(not isinstance(value, table)):
+        if(not isinstance(value, self.table)):
             raise TypeError("Table type and object provided mismatch")
         
          # set it to the name of the object as setting it to the object

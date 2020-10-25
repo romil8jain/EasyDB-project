@@ -7,7 +7,6 @@
 
 import collections
 import field
-
 # metaclass of table
 # Implement me or change me. (e.g. use class decorator instead)
 # When you import schema, the metatable is automatically created
@@ -17,14 +16,15 @@ class MetaTable(type):
     class_var_list = dict()
     def __init__(cls, name, bases, attrs):
 
-        MetaTable.my_classes.append(cls)
-        class_name = cls.__name__
-        # I think my code works better in this case,
-        # I have kept your code in end of document  
-        # Set the name of all class variables to _name
-        MetaTable.class_var_list[class_name] = [attr for attr in attrs.items() if not callable(getattr(cls, attr)) and not attr.startswith("__")]
-        for attr in MetaTable.class_var_list[class_name]:
-            getattr(cls,attr).setname(attr) # mostly works correctly
+        if cls not in MetaTable.my_classes:
+            MetaTable.my_classes.append(cls)
+            class_name = cls.__name__
+            # I think my code works better in this case,
+            # I have kept your code in end of document  
+            # Set the name of all class variables to _name
+            MetaTable.class_var_list[class_name] = [attr for attr in attrs.items() if not callable(getattr(cls, attr)) and not attr.startswith("__")]
+            for attr in MetaTable.class_var_list[class_name]:
+                getattr(cls,attr).setname(attr) # mostly works correctly
 
 
     # Returns an existing object from the table, if it exists.
@@ -47,9 +47,9 @@ class MetaTable(type):
     def count(cls, db, **kwarg):
         return list()
 
-    @classmethod
-    def __prepare__(mcs, name, bases, **kwargs):
-        return collections.OrderedDict()
+    # @classmethod
+    # def __prepare__(mcs, name, bases, **kwargs):
+    #     return collections.OrderedDict()
 
 # table class
 # Implement me.
@@ -104,12 +104,10 @@ class Table(object, metaclass=MetaTable):
 
     # Delete the row from the database.
     def delete(self):
-        if pk is not None:
-            self.db.drop(self.class_name, self.pk)
-            self.pk = None
-            self.version = None
-        else 
-            raise ObjectDoesNotExist()
+        self.db.drop(self.class_name, self.pk)
+        self.pk = None
+        self.version = None
+
 
 # Potential problem lines:
  # metaclass init
