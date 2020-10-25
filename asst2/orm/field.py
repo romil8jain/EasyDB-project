@@ -93,7 +93,7 @@ class Foreign:
         return getattr(inst, self.name)
 
     def __set__(self, inst, value):
-        if not isinstance(value, int):
+        if not isinstance(value, (Integer, Float, String)):
             raise TypeError
         setattr(inst, self.name, value)
         
