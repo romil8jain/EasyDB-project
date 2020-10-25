@@ -25,10 +25,10 @@ def main():
     if len(args) >= 2 and args[1] == "run":
         import code
         
-        port = args.get(2, 1234)
-        host = args.get(3, "localhost")
+        host = args.get(2, "localhost")
+        port = args.get(3, 8080)
                 
-        # create db object
+        # create db objecst
         db = orm.setup("easydb", schema)
         
         # keep only objects defined in the schema module

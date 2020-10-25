@@ -6,7 +6,7 @@
 #
 
 import collections
-import orm.field
+import orm.field as field
 # metaclass of table
 # Implement me or change me. (e.g. use class decorator instead)
 # When you import schema, the metatable is automatically created
@@ -70,7 +70,7 @@ class Table(object, metaclass=MetaTable):
             a_class_name = a_class.__name__
             if(a_class_name == self.class_name):  # find the child class of Table
 
-                for attr in MetaTable.class_var_list[a_class_name].items():
+                for attr in MetaTable.class_var_list[a_class_name]:
 
                     if(attr in kwargs.keys()):
                         setattr(self, attr, kwargs[attr])
@@ -87,10 +87,11 @@ class Table(object, metaclass=MetaTable):
         for a_class in MetaTable.my_classes:
             a_class_name = a_class.__name__
             if(a_class_name == self.class_name):  # find the child class of Table
-                for attr in MetaTable.class_var_list[a_class_name].items():
+                for attr in MetaTable.class_var_list[a_class_name]:
 
-                    if(isinstance(attr, field.Foreign)):
+                    if(isinstance(a_class.__dict__[attr], field.Foreign)):
                         foreign_obj = getattr(self, attr, None)
+                        print(f"Foreign: {foreign_obj}")
                         if(foreign_obj.pk is None):
                             foreign_obj.save()
                         values.append(foreign_obj.pk)

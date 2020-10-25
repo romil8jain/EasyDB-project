@@ -19,7 +19,6 @@ def setup(database_name, module):
             str(database_name)))
 
     tb = list()
-    # print(MetaTable.my_classes)
     for a_class in MetaTable.my_classes:
         class_name = a_class.__name__
         tb_class = list()
@@ -43,7 +42,6 @@ def setup(database_name, module):
             
             elif(isinstance(class_attr, field.Foreign)):
                 foreign_class_name = class_attr.table.__name__
-                print(f"Foreign calss name: {foreign_class_name}")
                 class_var_pair = (class_var, foreign_class_name)
             
             tb_class_var_list.append(class_var_pair)
@@ -54,7 +52,6 @@ def setup(database_name, module):
         tb.append(tb_class)
     
     tb = tuple(tb)
-    print(tb)
     
     # IMPLEMENT ME
     return Database(tb) 
