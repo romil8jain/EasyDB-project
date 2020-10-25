@@ -16,15 +16,16 @@ class MetaTable(type):
     class_var_list = dict()
     def __init__(cls, name, bases, attrs):
 
-        if cls not in MetaTable.my_classes:
+        if cls not in MetaTable.my_classes and cls.__name__ is not "Table":
             MetaTable.my_classes.append(cls)
             class_name = cls.__name__
             # I think my code works better in this case,
             # I have kept your code in end of document  
             # Set the name of all class variables to _name
-            MetaTable.class_var_list[class_name] = [attr for attr in attrs if not callable(getattr(cls, attr)) and not attr.startswith("__")]
-            for attr in MetaTable.class_var_list[class_name]:
-                getattr(cls,attr).setname(attr) # mostly works correctly
+            MetaTable.class_var_list[class_name] = [attr for attr in attrs if not attr.startswith("__")] # deleted from line: not callable(getattr(cls, attr)) and
+            for col,val in attrs.items():
+                if (not callable(val) and not col.startswith("__")):
+                    val.setname(col)
 
 
     # Returns an existing object from the table, if it exists.
