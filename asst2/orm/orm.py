@@ -6,6 +6,8 @@
 #
 
 from .easydb import Database
+import table
+import field
 
 # Return a database object that is initialized, but not yet connected.
 #   database_name: str, database name
@@ -16,6 +18,7 @@ def setup(database_name, module):
         raise NotImplementedError("Support for %s has not implemented"%(
             str(database_name)))
 
+    tables_schema = export(database_name, module)
     # IMPLEMENT ME
     return Database([]) 
 
@@ -30,6 +33,28 @@ def export(database_name, module):
         raise NotImplementedError("Support for %s has not implemented"%(
             str(database_name)))
 
-    # IMPLEMENT ME
+    tb = str()
+    for a_class in MetaTable.my_classes:
+        class_name = a_class.__name__
+        tb = tb + class_name + " {"
+        tb_class_var_list = tuple()
+        for class_var in MetaTable.class_var_list:
+            class_var_type = type(module.__dict__[class_name].__dict__[class_var])
+            class_var_pair = tuple()
+
+            if(isinstance(class_var_type, field.Integer)):
+                class_var_pair = (class_var, "int")
+
+            elif(isinstance(class_var_type, field.Float)):
+                class_var_pair = (class_var, "float")
+
+            elif(isinstance(class_var_type, field.String)):
+                class_var_pair = (class_var, "str")
+            
+            elif(isinstance(class_var_type, field.Foreign)):
+                foreign_class_name = getattr(a_class, class_var)
+                class_var_pair = (class_var, foreign_class_name)
+
+            
     return ""
 
