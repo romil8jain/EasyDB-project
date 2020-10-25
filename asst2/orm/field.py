@@ -22,7 +22,7 @@ class Integer:
         self.name = "_" + name
 
     def __get__(self, inst, cls):
-        return getattr(int, self.name)
+        return getattr(inst, self.name)
 
     def __set__(self, inst, value):
         if not isinstance(value, int):
@@ -47,7 +47,7 @@ class Float:
         self.name = "_" + name
 
     def __get__(self, inst, cls):
-        return getattr(int, self.name)
+        return getattr(inst, self.name)
 
     def __set__(self, inst, value):
         if not isinstance(value, (float, int)):
@@ -72,7 +72,7 @@ class String:
         self.name = "_" + name
 
     def __get__(self, inst, cls):
-        return getattr(int, self.name)
+        return getattr(inst, self.name)
 
     def __set__(self, inst, value):
         if not isinstance(value, str):
@@ -83,8 +83,19 @@ class Foreign:
     def __init__(self, table, blank=False):
 #        if blank == True: #make sure there is table and save field blank
 #            self = None
-            self.table = table
-            self.blank = blank
+        self.table = table
+        self.blank = blank
+
+    def setname(self, name):
+        self.name = "_" + name
+
+    def __get__(self, inst, cls):
+        return getattr(inst, self.name)
+
+    def __set__(self, inst, value):
+        if not isinstance(value, int):
+            raise TypeError
+        setattr(inst, self.name, value)
         
 
 class DateTime:

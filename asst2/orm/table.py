@@ -6,6 +6,7 @@
 #
 
 import collections
+from orm.field import*
 
 # metaclass of table
 # Implement me or change me. (e.g. use class decorator instead)
@@ -13,7 +14,9 @@ class MetaTable(type):
 
     def __init__(cls, name, bases, attrs):
         #super().__init__(name, bases, attrs)
-        pass
+        for col, val in attrs.items():
+            if isinstance(val, (Integer, Float, String, Foreign)):
+                val.setname(col)
 
     # Returns an existing object from the table, if it exists.
     #   db: database object, the database to get the object from
@@ -47,6 +50,8 @@ class Table(object, metaclass=MetaTable):
         self.pk = None      # id (primary key)
         self.version = None # version
         # FINISH ME
+        for col, val in kwargs.items():
+            setattr(self, col, val)
 
     # Save the row by calling insert or update commands.
     # atomic: bool, True for atomic update or False for non-atomic update
