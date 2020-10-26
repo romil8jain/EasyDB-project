@@ -73,7 +73,7 @@ class Float:
         
         if default is not None and not (isinstance(default, float) or isinstance(default, int)):
             raise TypeError                 #default is wrong type
-        else:
+        elif isinstance(self.default,int) :
             self.default = float(default)
 
         if choices is not None:
