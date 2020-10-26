@@ -76,7 +76,7 @@ def export(database_name, module):
             class_attr = module.__dict__[class_name].__dict__[class_var]
 
             if(isinstance(class_attr, field.Integer)):
-                tb += class_var + ": int; \n"
+                tb += class_var + ": integer; \n"
 
             elif(isinstance(class_attr, field.Float)):
                 tb += class_var + ": float; \n"

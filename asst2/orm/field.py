@@ -73,6 +73,8 @@ class Float:
         
         if default is not None and not (isinstance(default, float) or isinstance(default, int)):
             raise TypeError                 #default is wrong type
+        else:
+            self.default = float(default)
 
         if choices is not None:
 
@@ -107,7 +109,7 @@ class Float:
 
         if self.choices is not None and value not in self.choices:
             raise ValueError("Value not in choices")
-
+        value = float(value)
         setattr(inst, self.name, value)
 
 class String:
@@ -179,14 +181,12 @@ class Foreign:
         
         if (isinstance(value, int) or isinstance(value, str) or isinstance(value, float)):
             raise TypeError("Wrong type")
-        
-        print(f"Table: {self.table}")
-        if(not isinstance(value, self.table)):
+
+        elif(not isinstance(value, self.table)):
             raise TypeError("Table type and object provided mismatch")
-        
-         # set it to the name of the object as setting it to the object
-         # as setting it to the object itself may cause infinite recursion
-        setattr(inst, self.name, value)
+
+        else:
+            setattr(inst, self.name, value)
         
 
 
