@@ -13,6 +13,7 @@ class Integer:
 
         if default is not None:
             self.blank = True
+            self.default = default
         
         if(default == None):
             self.default = 0 # if default not specified, it should be 0
@@ -65,6 +66,7 @@ class Float:
 
         if default is not None:
             self.blank = True
+            self.default = default
         
         if(default == None):
             self.default = 0.0 # if default not specified, it should be 0
@@ -115,6 +117,7 @@ class String:
 
         if default is not None:
             self.blank = True
+            self.default = default
         
         if(default == None):
             self.default = "" # if default not specified, it should be 0
