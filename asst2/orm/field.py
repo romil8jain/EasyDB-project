@@ -102,8 +102,8 @@ class Float:
         if value is None and self.blank is True:
             value = self.default
         
-        if not isinstance(value, float):
-            raise TypeError("Not an float")
+        if not (isinstance(value, float) or isinstance(value, int)):
+            raise TypeError("Not a float")
 
         if self.choices is not None and value not in self.choices:
             raise ValueError("Value not in choices")
@@ -177,6 +177,10 @@ class Foreign:
 
     def __set__(self, inst, value):
         
+        if (isinstance(value, int) or isinstance(value, str) or isinstance(value, float)):
+            raise TypeError("Wrong type")
+        
+        print(f"Table: {self.table}")
         if(not isinstance(value, self.table)):
             raise TypeError("Table type and object provided mismatch")
         

@@ -85,7 +85,7 @@ def export(database_name, module):
                 tb += class_var + ": string; \n"
             
             elif(isinstance(class_attr, field.Foreign)):
-                foreign_class_name = getattr(a_class, class_var)
+                foreign_class_name = class_attr.table.__name__
                 tb += class_var + ": " + foreign_class_name + "; \n"
 
         tb += "} \n"
