@@ -9,13 +9,14 @@ from collections.abc import Iterable
 class Integer:   
     def __init__(self, blank=False, default=None, choices=None): 
          
-        if(default == None):
-            self.default = 0 # if default not specified, it should be 0
-
         self.blank = blank
 
         if default is not None:
             self.blank = True
+        
+        if(default == None):
+            self.default = 0 # if default not specified, it should be 0
+        
 
         if default is not None and not isinstance(default, int):
             raise TypeError                 #default is wrong type
@@ -60,13 +61,13 @@ class Integer:
 class Float: 
     def __init__(self, blank=False, default=None, choices=None):
 
-        if(default == None):
-            self.default = 0.0 # if default not specified, it should be 0
-
         self.blank = blank
 
         if default is not None:
             self.blank = True
+        
+        if(default == None):
+            self.default = 0.0 # if default not specified, it should be 0
         
         if default is not None and not (isinstance(default, float) or isinstance(default, int)):
             raise TypeError                 #default is wrong type
@@ -110,13 +111,13 @@ class Float:
 class String:
     def __init__(self, blank=False, default=None, choices=None):
 
-        if(default == None):
-            self.default = "" # if default not specified, it should be 0
-
         self.blank = blank
 
         if default is not None:
             self.blank = True
+        
+        if(default == None):
+            self.default = "" # if default not specified, it should be 0
 
         if default is not None and not isinstance(default, str):
             raise TypeError                 #default is wrong type
