@@ -40,7 +40,7 @@ class Integer:
     def __set__(self, inst, value):
 
         if value is None and self.blank is False: # setattr in Table send a value of None here
-            raise AttributeError("Specify the value of the field")
+            raise AttributeError("Specify the value of the field integer")
         
         if value is None and self.blank is True:
             value = self.default
@@ -88,7 +88,7 @@ class Float:
     def __set__(self, inst, value):
         
         if value is None and self.blank is False: # setattr in Table send a value of None here
-            raise AttributeError("Specify the value of the field")
+            raise AttributeError("Specify the value of the field float")
         
         if value is None and self.blank is True:
             value = self.default
@@ -135,7 +135,7 @@ class String:
     def __set__(self, inst, value):
         
         if value is None and self.blank is False: # setattr in Table send a value of None here
-            raise AttributeError("Specify the value of the field")
+            raise AttributeError("Specify the value of the field string")
         
         if value is None and self.blank is True:
             value = self.default
