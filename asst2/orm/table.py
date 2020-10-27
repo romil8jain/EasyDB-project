@@ -105,9 +105,8 @@ class Table(object, metaclass=MetaTable):
         if self.pk is None:
             self.pk, self.version = self.db.insert(self.class_name, values)
         else:
-            new_version = self.db.update(self.class_name, self.pk, values)
-            if(self.version!= (new_version-1)):
-                raise exception.TransactionAbort()
+            self.version = self.db.update(self.class_name, self.pk, values)
+            
     
 
     # Delete the row from the database.

@@ -214,7 +214,7 @@ class DateTime:
                 self.default = default
         
         if(default == None):
-            self.default = datetime.timestamp() # if default not specified, it should be 0
+            self.default = datetime.fromtimestamp(0) # if default not specified, it should be 0
 
         if choices is not None:
 
