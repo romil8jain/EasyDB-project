@@ -25,7 +25,7 @@ class MetaTable(type):
             for col,val in attrs.items():
                 if (not callable(val) and not col.startswith("__")):
                     val.setname(col)
-                    if(isinstance(col, field.Foreign)):
+                    if(isinstance(val, field.Foreign)):
                         MetaTable.foreign_class_list[cls.__name__] = val.table
                 
 
