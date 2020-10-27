@@ -22,6 +22,8 @@ def setup(database_name, module):
     for a_class in MetaTable.my_classes:
         class_name = a_class.__name__
         tb_class = list()
+       # if class_name in tb_class:
+       #     raise AttributeError
         tb_class.append(class_name)
         tb_class_var_list = list()
 

@@ -14,12 +14,18 @@ from .easydb import exception
 class MetaTable(type):
 
     my_classes= []
+    my_class_names = []
     class_var_list = dict()
+    class_var_obj = dict()
     def __init__(cls, name, bases, attrs):
 
         if cls not in MetaTable.my_classes and cls.__name__ is not "Table":
             MetaTable.my_classes.append(cls)
             class_name = cls.__name__
+            if class_name in MetaTable.my_class_names:
+                raise AttributeError
+            else:
+                MetaTable.my_class_names.append(class_name)
             # I think my code works better in this case,
             # I have kept your code in end of document  
             # Set the name of all class variables to _name
@@ -27,33 +33,43 @@ class MetaTable(type):
             for col,val in attrs.items():
                 if (not callable(val) and not col.startswith("__")):
                     val.setname(col)
+                    MetaTable.class_var_obj[class_name] = col, val
+                    if col in ('pk', 'version', 'save', 'delete') or '_' in col:
+                        raise AttributeError
+
 
 
     # Returns an existing object from the table, if it exists.
     #   db: database object, the database to get the object from
     #   pk: int, primary key (ID)
     def get(cls, db, pk):
-        help(cls)
-        
         table_name = cls.__name__
         objValues, objVersion = db.get(table_name, pk)
-
+        
         if objValues is not None:
             columns = {}
-            for pair in cls.__dict__.items():
-                if '_' not in pair[0]:
+            i = 0
+            for pair in MetaTable.class_var_obj[table_name]:
+                if isinstance(pair[1], field.Foreign):
+                    #columns[pair[0]] = pair[1].
+                    #pass #not sure what to put on rhs here
+                    help(pair[1])
 
-                    field = getattr(cls, pair[0]) #first argument should be cls.something, 
-                    help(field)                     #not sure what that something is rn
-
-                    if isinstance(field, orm.Foreign):
-                        #columns[pair[0]] = get reference in table
-                        pass
-                    else:
-                        #columns[pair[0]] = convert value found to in-memory value
-                        pass
-
-            #create instance and return it
+                elif isinstance(pair[1], field.Integer):
+                    columns[pair[0]] = field.Integer.__init__(default = objValues[i])
+                elif isinstance(pair[1], field.Float):
+                    columns[pair[0]] = field.Float.__init__(default = objValues[i])
+                elif isinstance(pair[1], field.String):
+                    columns[pair[0]] = field.String.__init__(default = objValues[i])
+                elif isinstance(pair[1], field.DateTime):
+                    columns[pair[0]] = field.DateTime.__init__(default = objValues[i])
+                elif isinstance(pair[1], field.Coordinate):
+                    columns[pair[0]] = field.Coordinate.__init__(default = objValues[i])
+                i += 1
+            obj = cls.__init__(obj, db, columns) #will verify these following 3 lines
+            obj.pk = pk
+            obj.version = version
+            return obj
         else:
             return None
 
@@ -114,7 +130,6 @@ class MetaTable(type):
         matches = list()
         columnName = 0
         operator = 0
-        print("check")
         if not kwarg == {}:
             key, value = kwarg.popitem()
             
@@ -136,8 +151,8 @@ class MetaTable(type):
                 operator = 5
 
             #check for field which DNE (case 8), currently buggy
-            #if columnName not in cls.__dict__:
-             #   raise AttributeError
+           # if columnName not in MetaTable.class_var_list[table_name]:
+           #     raise AttributeError
 
 
             matches = db.scan(table_name, operator, columnName, value)
@@ -145,6 +160,7 @@ class MetaTable(type):
         else:
             operator = 1
             matches = db.scan(table_name, operator)
+
 
         return len(matches)
 
@@ -217,7 +233,4 @@ class Table(object, metaclass=MetaTable):
         self.db.drop(self.class_name, self.pk)
         self.pk = None
         self.version = None
-
-
-
 
