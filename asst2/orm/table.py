@@ -20,9 +20,6 @@ class MetaTable(type):
         if cls not in MetaTable.my_classes and cls.__name__ is not "Table":
             MetaTable.my_classes.append(cls)
             class_name = cls.__name__
-            # I think my code works better in this case,
-            # I have kept your code in end of document  
-            # Set the name of all class variables to _name
             MetaTable.class_var_list[class_name] = [attr for attr in attrs if not attr.startswith("__")] # deleted from line: not callable(getattr(cls, attr)) and
             for col,val in attrs.items():
                 if (not callable(val) and not col.startswith("__")):
@@ -33,27 +30,33 @@ class MetaTable(type):
     #   db: database object, the database to get the object from
     #   pk: int, primary key (ID)
     def get(cls, db, pk):
-        help(cls)
+        # help(cls)
         
         table_name = cls.__name__
         objValues, objVersion = db.get(table_name, pk)
 
         if objValues is not None:
             columns = {}
-            for pair in cls.__dict__.items():
-                if '_' not in pair[0]:
+            index_attr = 0
+            for attr in MetaTable.class_var_list[table_name]:
 
-                    field = getattr(cls, pair[0]) #first argument should be cls.something, 
-                    help(field)                     #not sure what that something is rn
+                if(isinstance(cls.__dict__[attr], field.Foreign)):
+                    foreign_obj = cls.get(db=db, pk=objValues[index_attr])
+                    columns[attr] = foreign_obj
+                elif(isinstance(cls.__dict__[attr], field.Coordinate)):
+                    lat_val = objValues[index_attr]
+                    lon_val = objValues[index_attr+1]
+                    columns[attr] = (lat_val, lon_val)
+                    index_attr+=1
+                else:
+                    columns[attr] = objValues[index_attr] # datetime is probably wrong because it will now be a string
 
-                    if isinstance(field, orm.Foreign):
-                        #columns[pair[0]] = get reference in table
-                        pass
-                    else:
-                        #columns[pair[0]] = convert value found to in-memory value
-                        pass
-
-            #create instance and return it
+                index_attr+=1
+                    
+            return_obj = cls(**columns)
+            return_obj.pk = pk
+            return_obj.version = objVersion
+            return return_obj
         else:
             return None
 
