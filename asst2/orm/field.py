@@ -313,8 +313,10 @@ class Coordinate:
         if self.choices is not None and value not in self.choices:
             raise ValueError("Value not in choices")
         
+        value = list(value)
         value[0] = float(value[0])
         value[1] = float(value[1])
+        value = tuple(value)
         setattr(inst, self.name, value)
 
     def check_valid_coordinate(self, coordinate):
