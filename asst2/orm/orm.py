@@ -63,7 +63,6 @@ def setup(database_name, module):
   
     
     tb = tuple(tb)
-    print(tb)
     
     # IMPLEMENT ME
     return Database(tb) 
@@ -110,7 +109,6 @@ def export(database_name, module):
                 tb += class_var_lon + ": float; \n"
 
         tb += "} \n"
-    print(tb)
     
     return tb
 

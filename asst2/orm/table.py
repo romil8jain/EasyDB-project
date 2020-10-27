@@ -95,6 +95,8 @@ class Table(object, metaclass=MetaTable):
                         if(foreign_obj.pk is None):
                             foreign_obj.save()
                         values.append(foreign_obj.pk)
+                    elif(isinstance(a_class.__dict__[attr], field.DateTime)):
+                        values.append(str(getattr(self, attr, None)))
                     elif(isinstance(a_class.__dict__[attr], field.Coordinate)):
                         coordinate = getattr(self, attr, None)
                         values.append(coordinate[0]) # attr_lat
@@ -103,7 +105,6 @@ class Table(object, metaclass=MetaTable):
                         values.append(getattr(self, attr, None))
         
         if self.pk is None:
-            print(values)
             self.pk, self.version = self.db.insert(self.class_name, values)
         else:
             self.version = self.db.update(self.class_name, self.pk, values)

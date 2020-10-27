@@ -249,16 +249,16 @@ class DateTime:
             raise AttributeError("Specify the value of the field datetime")
         
         if value is None and self.blank is True:
-            value = str(self.default)
+            value = self.default
 
         if self.choices is not None and value not in self.choices:
             raise ValueError("Value not in choices")
 
         if value is not None:
             if(callable(value)):
-                setattr(inst, self.name, str(value())) # stored as string in the database
+                setattr(inst, self.name, value()) # stored as string in the database
             else:
-                setattr(inst, self.name, str(value))
+                setattr(inst, self.name, value)
         
 
     
@@ -313,10 +313,14 @@ class Coordinate:
         if self.choices is not None and value not in self.choices:
             raise ValueError("Value not in choices")
         
+        value[0] = float(value[0])
+        value[1] = float(value[1])
         setattr(inst, self.name, value)
 
     def check_valid_coordinate(self, coordinate):
-        if (isinstance(coordinate, tuple) and len(coordinate) == 2 and coordinate[0]>=0 and coordinate[1]>=0 and 
+        if (isinstance(coordinate, tuple) and len(coordinate) == 2 and 
+            coordinate[0]>=-90 and coordinate[0]<=90 and 
+            coordinate[1]>=-180 and coordinate[1]<=180 and 
             (isinstance(coordinate[0], int) or isinstance(coordinate[0], float)) and 
             (isinstance(coordinate[1], int) or isinstance(coordinate[1], float))): 
             return True
