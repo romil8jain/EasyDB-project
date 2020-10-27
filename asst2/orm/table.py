@@ -7,6 +7,7 @@
 
 import collections
 import orm.field as field
+from .easydb import exception
 # metaclass of table
 # Implement me or change me. (e.g. use class decorator instead)
 # When you import schema, the metatable is automatically created
@@ -91,17 +92,22 @@ class Table(object, metaclass=MetaTable):
 
                     if(isinstance(a_class.__dict__[attr], field.Foreign)):
                         foreign_obj = getattr(self, attr, None)
-                        print(f"Foreign: {foreign_obj}")
                         if(foreign_obj.pk is None):
                             foreign_obj.save()
                         values.append(foreign_obj.pk)
+                    elif(isinstance(a_class.__dict__[attr], field.Coordinate)):
+                        coordinate = getattr(self, attr, None)
+                        values.append(coordinate[0]) # attr_lat
+                        values.append(coordinate[1]) # attr_lon
                     else:
                         values.append(getattr(self, attr, None))
         
         if self.pk is None:
             self.pk, self.version = self.db.insert(self.class_name, values)
         else:
-            self.version = self.db.update(self.class_name, self.pk, values)
+            new_version = self.db.update(self.class_name, self.pk, values)
+            if(self.version!= (new_version-1)):
+                raise exception.TransactionAbort()
     
 
     # Delete the row from the database.
@@ -111,16 +117,5 @@ class Table(object, metaclass=MetaTable):
         self.version = None
 
 
-# Potential problem lines:
- # metaclass init
 
-# Unused code
 
-        # metaclass has class information
-        # for a_class in super().my_classes:
-        #     if(self.__class__.__name__ == a_class):
-        #         the_class = getattr(schema, )
-
-        # for col, val in attrs.items():
-        #     if isinstance(val, (Integer, Float, String, Foreign)):
-        #         val.setname(col)

@@ -44,6 +44,16 @@ def setup(database_name, module):
                 foreign_class_name = class_attr.table.__name__
                 class_var_pair = (class_var, foreign_class_name)
             
+            elif(isinstance(class_attr, field.DateTime)):
+                class_var_pair = (class_var, str)
+
+            elif(isinstance(class_attr, field.Coordinate)):
+                class_var_lat = class_var + "_lat"
+                class_var_pair = (class_var_lat, float)
+                tb_class_var_list.append(class_var_pair)
+                class_var_lon = class_var + "_lon"
+                class_var_pair = (class_var_lon, float)
+            
             tb_class_var_list.append(class_var_pair)
         
         tb_class_var_list = tuple(tb_class_var_list)
@@ -87,6 +97,15 @@ def export(database_name, module):
             elif(isinstance(class_attr, field.Foreign)):
                 foreign_class_name = class_attr.table.__name__
                 tb += class_var + ": " + foreign_class_name + "; \n"
+
+            elif(isinstance(class_attr, field.DateTime)):
+                tb += class_var + ": string; \n"
+
+            elif(isinstance(class_attr, field.Coordinate)):
+                class_var_lat = class_var + "_lat"
+                tb += class_var_lat + ": float; \n"
+                class_var_lon = class_var + "_lon"
+                tb += class_var_lon + ": float; \n"
 
         tb += "} \n"
     
