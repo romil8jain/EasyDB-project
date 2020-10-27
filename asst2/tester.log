@@ -13,11 +13,11 @@
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: 127.0.0.1:1889, fd: 3 }
-Connected to 127.0.0.1:42126
+Listening: TcpListener { addr: 127.0.0.1:1911, fd: 3 }
+Connected to 127.0.0.1:44002
 Request { table_id: 1, command: Insert([Text("Joe"), Text("Harris"), Float(0.0), Integer(32)]) }
 Insert(1, 1)
-Connected to 127.0.0.1:42128
+Connected to 127.0.0.1:44004
 Request { table_id: 1, command: Dump }
 Dump("1\t1\tJoe\tHarris\t0\t32\n")
 Request { table_id: 1, command: Exit }
@@ -26,19 +26,19 @@ Request { table_id: 1, command: Insert([Text("Jeffrey"), Text("Fang"), Float(999
 Insert(2, 1)
 Request { table_id: 2, command: Insert([Foreign(2), Text("Special"), Float(100.0)]) }
 Insert(1, 1)
-Connected to 127.0.0.1:42130
+Connected to 127.0.0.1:44006
 Request { table_id: 1, command: Dump }
 Dump("1\t1\tJoe\tHarris\t0\t32\n2\t1\tJeffrey\tFang\t999.9\t0\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Connected to 127.0.0.1:42132
+Connected to 127.0.0.1:44008
 Request { table_id: 2, command: Dump }
 Dump("1\t1\t2\tSpecial\t100\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 Request { table_id: 1, command: Update(1, 0, [Text("Joe"), Text("Harris"), Float(663.1), Integer(32)]) }
 Update(2)
-Connected to 127.0.0.1:42134
+Connected to 127.0.0.1:44010
 Request { table_id: 1, command: Dump }
 Dump("1\t2\tJoe\tHarris\t663.1\t32\n2\t1\tJeffrey\tFang\t999.9\t0\n")
 Request { table_id: 1, command: Exit }
@@ -47,19 +47,19 @@ Request { table_id: 1, command: Update(1, 0, [Text("Joe"), Text("Harris"), Float
 Update(3)
 Request { table_id: 1, command: Update(1, 0, [Text("Joe"), Text("Harris"), Float(663.1), Integer(40)]) }
 Update(4)
-Connected to 127.0.0.1:42136
+Connected to 127.0.0.1:44012
 Request { table_id: 1, command: Dump }
 Dump("1\t4\tJoe\tHarris\t663.1\t40\n2\t1\tJeffrey\tFang\t999.9\t0\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
 Request { table_id: 2, command: Update(1, 0, [Foreign(2), Text("Special"), Float(200.0)]) }
 Update(2)
-Connected to 127.0.0.1:42138
+Connected to 127.0.0.1:44014
 Request { table_id: 1, command: Dump }
 Dump("1\t4\tJoe\tHarris\t663.1\t40\n2\t1\tJeffrey\tFang\t999.9\t0\n")
 Request { table_id: 1, command: Exit }
 Disconnected.
-Connected to 127.0.0.1:42140
+Connected to 127.0.0.1:44016
 Request { table_id: 2, command: Dump }
 Dump("1\t2\t2\tSpecial\t200\n")
 Request { table_id: 1, command: Exit }
@@ -81,12 +81,12 @@ Error(9)
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: 127.0.0.1:4255, fd: 3 }
-Connected to 127.0.0.1:43688
+Listening: TcpListener { addr: 127.0.0.1:4080, fd: 3 }
+Connected to 127.0.0.1:44828
 Request { table_id: 1, command: Drop(1) }
 Cascade drop object id 1, table Account
 Drop
-Connected to 127.0.0.1:43690
+Connected to 127.0.0.1:44830
 Request { table_id: 1, command: Dump }
 Dump("2\t1\tBob\tHington\t178.2\t48\n3\t1\tAlice\tHarris\t163.2\t21\n")
 Request { table_id: 1, command: Exit }
@@ -108,8 +108,8 @@ Error(2)
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: 127.0.0.1:6006, fd: 3 }
-Connected to 127.0.0.1:51040
+Listening: TcpListener { addr: 127.0.0.1:9296, fd: 3 }
+Connected to 127.0.0.1:39760
 Request { table_id: 1, command: Get(777) }
 Error(2)
 Request { table_id: 1, command: Get(1) }
@@ -141,8 +141,8 @@ Get(1, [Text("Alice"), Text("Harris"), Float(163.2), Integer(21)])
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: 127.0.0.1:8551, fd: 3 }
-Connected to 127.0.0.1:60898
+Listening: TcpListener { addr: 127.0.0.1:1442, fd: 3 }
+Connected to 127.0.0.1:57372
 Request { table_id: 1, command: Query(0, 1, Null) }
 Query([1, 2, 3])
 Request { table_id: 1, command: Query(4, 5, Integer(21)) }
@@ -166,8 +166,8 @@ Query([1, 3])
     2. type : string
     3. balance : float
 ]
-Listening: TcpListener { addr: 127.0.0.1:2730, fd: 3 }
-Connected to 127.0.0.1:42842
+Listening: TcpListener { addr: 127.0.0.1:7341, fd: 3 }
+Connected to 127.0.0.1:33820
 Request { table_id: 2, command: Query(0, 1, Null) }
 Query([1, 2, 3, 4])
 Request { table_id: 2, command: Query(3, 4, Float(210.3)) }
@@ -203,8 +203,8 @@ Error(4)
     2. start : string
     3. end : string
 ]
-Listening: TcpListener { addr: 127.0.0.1:7078, fd: 3 }
-Connected to 127.0.0.1:40942
+Listening: TcpListener { addr: 127.0.0.1:4619, fd: 3 }
+Connected to 127.0.0.1:58776
 Request { table_id: 3, command: Insert([Float(43.74), Float(-79.37), Text("Waterloo")]) }
 Insert(1, 1)
 Request { table_id: 3, command: Get(1) }
@@ -214,3 +214,4 @@ Insert(2, 1)
 Request { table_id: 3, command: Insert([Float(12.3), Float(-79.37), Text("Surrey")]) }
 Insert(3, 1)
 Connection error: Custom { kind: Other, error: "Invalid command" }
+Disconnected.

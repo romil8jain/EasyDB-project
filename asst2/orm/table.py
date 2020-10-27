@@ -14,33 +14,47 @@ from .easydb import exception
 class MetaTable(type):
 
     my_classes= []
+    my_class_names = []
     class_var_list = dict()
+
     foreign_class_list = dict()
+    class_var_obj = dict()
+
     def __init__(cls, name, bases, attrs):
 
         if cls not in MetaTable.my_classes and cls.__name__ is not "Table":
             MetaTable.my_classes.append(cls)
             class_name = cls.__name__
+
+            if class_name in MetaTable.my_class_names:
+                raise AttributeError
+            else:
+                MetaTable.my_class_names.append(class_name)
             MetaTable.class_var_list[class_name] = [attr for attr in attrs if not attr.startswith("__")] # deleted from line: not callable(getattr(cls, attr)) and
             for col,val in attrs.items():
                 if (not callable(val) and not col.startswith("__")):
                     val.setname(col)
+
                     if(isinstance(val, field.Foreign)):
                         MetaTable.foreign_class_list[cls.__name__] = val.table
-                
+
+                    MetaTable.class_var_obj[class_name] = col, val
+                    if col in ('pk', 'version', 'save', 'delete') or '_' in col:
+                        raise AttributeError
+
 
 
     # Returns an existing object from the table, if it exists.
     #   db: database object, the database to get the object from
     #   pk: int, primary key (ID)
     def get(cls, db, pk):
-        # help(cls)
-        
+
         table_name = cls.__name__
         objValues, objVersion = db.get(table_name, pk)
-
+        
         if objValues is not None:
             columns = {}
+
             index_attr = 0
             for attr in MetaTable.class_var_list[table_name]:
 
@@ -123,7 +137,6 @@ class MetaTable(type):
         matches = list()
         columnName = 0
         operator = 0
-        print("check")
         if not kwarg == {}:
             key, value = kwarg.popitem()
             
@@ -145,8 +158,8 @@ class MetaTable(type):
                 operator = 5
 
             #check for field which DNE (case 8), currently buggy
-            #if columnName not in cls.__dict__:
-             #   raise AttributeError
+           # if columnName not in MetaTable.class_var_list[table_name]:
+           #     raise AttributeError
 
 
             matches = db.scan(table_name, operator, columnName, value)
@@ -154,6 +167,7 @@ class MetaTable(type):
         else:
             operator = 1
             matches = db.scan(table_name, operator)
+
 
         return len(matches)
 
@@ -225,7 +239,4 @@ class Table(object, metaclass=MetaTable):
         self.db.drop(self.class_name, self.pk)
         self.pk = None
         self.version = None
-
-
-
 
