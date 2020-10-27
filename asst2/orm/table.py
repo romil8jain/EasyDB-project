@@ -33,21 +33,122 @@ class MetaTable(type):
     #   db: database object, the database to get the object from
     #   pk: int, primary key (ID)
     def get(cls, db, pk):
-        return None
+        help(cls)
+        
+        table_name = cls.__name__
+        objValues, objVersion = db.get(table_name, pk)
+
+        if objValues is not None:
+            columns = {}
+            for pair in cls.__dict__.items():
+                if '_' not in pair[0]:
+
+                    field = getattr(cls, pair[0]) #first argument should be cls.something, 
+                    help(field)                     #not sure what that something is rn
+
+                    if isinstance(field, orm.Foreign):
+                        #columns[pair[0]] = get reference in table
+                        pass
+                    else:
+                        #columns[pair[0]] = convert value found to in-memory value
+                        pass
+
+            #create instance and return it
+        else:
+            return None
 
     # Returns a list of objects that matches the query. If no argument is given,
     # returns all objects in the table.
     # db: database object, the database to get the object from
     # kwarg: the query argument for comparing
     def filter(cls, db, **kwarg):
-        return list()
+        table_name = cls.__name__
+        matches = list()
+        objectList = list()
+        value = 0
+        columnName = 0
+        operator = 0
+
+        if not kwarg == {}:
+            key, value = kwarg.popitem()
+            
+            if "_" in key:
+                if not (key.endswith("_ne") or key.endswith("_gt") or key.endswith("_lt")):
+                    raise AttributeError
+                else:
+                    queryArgs = key.split('_', 1)
+                    columnName, operator = tuple(queryArgs)
+            else:
+                columnName = key
+                operator = 2
+            if operator == 'ne':
+                operator = 3
+            elif operator == 'lt':
+                operator = 4
+            else:
+                operator = 5
+
+            if columnName not in cls.__dict__:
+                raise AttributeError
+            
+            matches = db.scan(table_name, operator, columnName, value)
+            print(matches)
+        else:
+            operator = 1
+            matches = db.scan(table_name, operator)
+            print(matches)
+        
+        for pk in matches:
+            obj = self.get(cls, db, pk)
+            objectList.append(obj)
+
+        return objectList
+
 
     # Returns the number of matches given the query. If no argument is given, 
     # return the number of rows in the table.
     # db: database object, the database to get the object from
     # kwarg: the query argument for comparing
     def count(cls, db, **kwarg):
-        return list()
+        table_name = cls.__name__
+        matches = list()
+        columnName = 0
+        operator = 0
+        print("check")
+        if not kwarg == {}:
+            key, value = kwarg.popitem()
+            
+            if "_" in key:
+                if not (key.endswith("_ne") or key.endswith("_gt") or key.endswith("_lt")):
+                    raise AttributeError
+                else:
+                    queryArgs = key.split('_', 1)
+                    columnName, operator = tuple(queryArgs)
+
+            else:
+                columnName = key
+                operator = 2
+            if operator == '_ne':
+                operator = 3
+            elif operator == '_lt':
+                operator = 4
+            elif operator == '_gt':
+                operator = 5
+
+            #check for field which DNE (case 8), currently buggy
+            #if columnName not in cls.__dict__:
+             #   raise AttributeError
+
+
+            matches = db.scan(table_name, operator, columnName, value)
+
+        else:
+            operator = 1
+            matches = db.scan(table_name, operator)
+
+        return len(matches)
+
+
 
     # @classmethod
     # def __prepare__(mcs, name, bases, **kwargs):
