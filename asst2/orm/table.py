@@ -41,7 +41,17 @@ class MetaTable(type):
             for attr in MetaTable.class_var_list[table_name]:
 
                 if(isinstance(cls.__dict__[attr], field.Foreign)):
-                    foreign_obj = cls.get(db=db, pk=objValues[index_attr])
+
+                    the_foreign_class = cls # Initial value never used
+
+                    # Find the foreign class in list of foreign classes of table
+                    # Will not work if one class has multiple foreign classes
+                    for a_foreign_class_type in cls.foreign_classes: 
+                        for a_class in MetaTable.my_classes:
+                            if(a_foreign_class_type == a_class):
+                                the_foreign_class = a_class
+
+                    foreign_obj = the_foreign_class.get(db=db, pk=objValues[index_attr])
                     columns[attr] = foreign_obj
                 elif(isinstance(cls.__dict__[attr], field.Coordinate)):
                     lat_val = objValues[index_attr]
@@ -53,7 +63,7 @@ class MetaTable(type):
 
                 index_attr+=1
                     
-            return_obj = cls(**columns)
+            return_obj = cls(db, **columns)
             return_obj.pk = pk
             return_obj.version = objVersion
             return return_obj
@@ -161,7 +171,7 @@ class MetaTable(type):
 # Implement me.
 # Every record of any table is also a table type of object.
 class Table(object, metaclass=MetaTable):
-
+    foreign_classes = list()
     def __init__(self, db, **kwargs):
         self.pk = None      # id (primary key)
         self.version = None # version
@@ -178,6 +188,8 @@ class Table(object, metaclass=MetaTable):
                 for attr in MetaTable.class_var_list[a_class_name]:
 
                     if(attr in kwargs.keys()):
+                        if(isinstance(a_class.__dict__[attr], field.Foreign)):
+                            Table.foreign_classes.append(type(kwargs[attr]))
                         setattr(self, attr, kwargs[attr])
                     else:
                         setattr(self, attr, None) # as None value is passed, __set__ sets to default value or raises error
