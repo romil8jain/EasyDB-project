@@ -82,7 +82,6 @@ class Database:
  def connect(self, host, port):
    ADDR = (host, port)
    self.client.connect(ADDR)
-   time.sleep(1)
    intial_message = self.client.recv(4096)
    return True
  
@@ -159,7 +158,6 @@ class Database:
  
    sendVal = request + count + row
    self.client.send(sendVal)
-   time.sleep(1)
    insert_message = self.client.recv(4096)
  
    code, = unpack_from(">l", insert_message)
@@ -254,7 +252,6 @@ class Database:
   
    sendVal += row
    self.client.send(sendVal)
-   time.sleep(1)
    update_message = self.client.recv(4096)
    code, = unpack_from(">l", update_message)
 
@@ -282,7 +279,6 @@ class Database:
    rowNum = pack('>q', pk)
    sendVal = request + rowNum
    self.client.send(sendVal)
-   time.sleep(1)
    drop_message = self.client.recv(4096)
 
    code, = unpack_from(">i", drop_message)
@@ -301,7 +297,6 @@ class Database:
    rowNum = pack('>q', pk)
    sendVal = request + rowNum
    self.client.send(sendVal)
-   time.sleep(1)
    get_message = self.client.recv(4096)
 
    get_format=">iqi" # code, version, count, value type, value length
@@ -433,7 +428,6 @@ class Database:
    sendVal = request + columnByte + operatorByte + valByte
  
    self.client.send(sendVal)
-   time.sleep(1)
    scan_message = self.client.recv(4096)
  
    code, = unpack_from(">l", scan_message)

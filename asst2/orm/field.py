@@ -273,11 +273,14 @@ class Coordinate:
             self.default = default
         
         if(default == None):
-            self.default = (0,0) # if default not specified, it should be 0
+            self.default = (0.0,0.0) # if default not specified, it should be 0
 
         if default is not None:
             if(not self.check_valid_coordinate(default)):
-                raise TypeError("Invalid coordinates")                 #default is wrong type
+                if(not (isinstance(default, tuple) and len(default) == 2)):
+                    raise TypeError("Invalid coordinates type")                 #default is wrong type
+                else:
+                    raise ValueError("Invalid coordinates value")
 
         if choices is not None:
 
@@ -286,7 +289,10 @@ class Coordinate:
 
             for i in choices:
                 if(not self.check_valid_coordinate(i)):
-                    raise TypeError("Invalid coordinates in choice")         #at least one choice is wrong type
+                    if(not (isinstance(i, tuple) and len(i) == 2)):
+                        raise TypeError("Invalid coordinates type")                 #default is wrong type
+                    else:
+                        raise ValueError("Invalid coordinates value")        #at least one choice is wrong type
 
             if default is not None and choices is not None and default not in choices:
                 raise TypeError
@@ -308,7 +314,10 @@ class Coordinate:
             value = self.default
         
         if(not self.check_valid_coordinate(value)):
-            raise TypeError("Invalid coordinates of value provided")
+            if(not (isinstance(value, tuple) and len(value) == 2)):
+                raise TypeError("Invalid coordinates type")                 
+            else:
+                raise ValueError("Invalid coordinates value")  
 
         if self.choices is not None and value not in self.choices:
             raise ValueError("Value not in choices")
