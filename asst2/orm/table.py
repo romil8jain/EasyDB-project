@@ -103,6 +103,7 @@ class Table(object, metaclass=MetaTable):
                         values.append(getattr(self, attr, None))
         
         if self.pk is None:
+            print(values)
             self.pk, self.version = self.db.insert(self.class_name, values)
         else:
             self.version = self.db.update(self.class_name, self.pk, values)
