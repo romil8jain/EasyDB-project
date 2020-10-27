@@ -47,8 +47,10 @@ class MetaTable(type):
                     # Find the foreign class in list of foreign classes of table
                     # Will not work if one class has multiple foreign classes
                     for a_class in MetaTable.my_classes:
+                        print(f"Table name is {table_name}")
                         if(cls.foreign_classes[table_name] == a_class):
                             the_foreign_class = a_class
+                            
 
                     foreign_obj = the_foreign_class.get(db=db, pk=objValues[index_attr])
                     columns[attr] = foreign_obj
@@ -188,6 +190,7 @@ class Table(object, metaclass=MetaTable):
 
                     if(attr in kwargs.keys()):
                         if(isinstance(a_class.__dict__[attr], field.Foreign)):
+                            print(f"Self class name: {self.class_name} and type = {type(kwargs[attr]}")
                             Table.foreign_classes[self.class_name] = type(kwargs[attr])
                         setattr(self, attr, kwargs[attr])
                     else:
