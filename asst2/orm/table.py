@@ -15,6 +15,7 @@ class MetaTable(type):
 
     my_classes= []
     class_var_list = dict()
+    foreign_class_list = dict()
     def __init__(cls, name, bases, attrs):
 
         if cls not in MetaTable.my_classes and cls.__name__ is not "Table":
@@ -24,6 +25,9 @@ class MetaTable(type):
             for col,val in attrs.items():
                 if (not callable(val) and not col.startswith("__")):
                     val.setname(col)
+                    if(isinstance(col, field.Foreign)):
+                        MetaTable.foreign_class_list[cls.__name__] = val.table
+                
 
 
     # Returns an existing object from the table, if it exists.
@@ -42,16 +46,7 @@ class MetaTable(type):
 
                 if(isinstance(cls.__dict__[attr], field.Foreign)):
 
-                    the_foreign_class = cls # Initial value never used
-
-                    # Find the foreign class in list of foreign classes of table
-                    # Will not work if one class has multiple foreign classes
-                    for a_class in MetaTable.my_classes:
-                        print(f"Table name is {table_name}")
-                        if(cls.foreign_classes[table_name] == a_class):
-                            the_foreign_class = a_class
-                            
-
+                    the_foreign_class = MetaTable.foreign_class_list[table_name]
                     foreign_obj = the_foreign_class.get(db=db, pk=objValues[index_attr])
                     columns[attr] = foreign_obj
                 elif(isinstance(cls.__dict__[attr], field.Coordinate)):
@@ -172,7 +167,6 @@ class MetaTable(type):
 # Implement me.
 # Every record of any table is also a table type of object.
 class Table(object, metaclass=MetaTable):
-    foreign_classes = dict()
     def __init__(self, db, **kwargs):
         self.pk = None      # id (primary key)
         self.version = None # version
@@ -189,9 +183,6 @@ class Table(object, metaclass=MetaTable):
                 for attr in MetaTable.class_var_list[a_class_name]:
 
                     if(attr in kwargs.keys()):
-                        if(isinstance(a_class.__dict__[attr], field.Foreign)):
-                            print(f"Self class name: {self.class_name} and type = {type(kwargs[attr]}")
-                            Table.foreign_classes[self.class_name] = type(kwargs[attr])
                         setattr(self, attr, kwargs[attr])
                     else:
                         setattr(self, attr, None) # as None value is passed, __set__ sets to default value or raises error
