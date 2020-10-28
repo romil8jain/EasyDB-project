@@ -43,7 +43,7 @@ def setup(database_name, module):
                 class_var_pair = (class_var, str)
             
             elif(isinstance(class_attr, field.Foreign)):
-                if(class_attr is not None)
+                if(class_attr is not None):
                     foreign_class_name = class_attr.table.__name__
                     class_var_pair = (class_var, foreign_class_name)    
             
@@ -99,7 +99,7 @@ def export(database_name, module):
                 tb += class_var + ": string; \n"
             
             elif(isinstance(class_attr, field.Foreign)):
-                if(class_attr is not None)
+                if(class_attr is not None):
                     foreign_class_name = class_attr.table.__name__
                     tb += class_var + ": " + foreign_class_name + "; \n"
 

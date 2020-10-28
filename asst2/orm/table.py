@@ -122,6 +122,7 @@ class MetaTable(type):
             for attr in MetaTable.class_var_list[table_name]:
                 if columnName == attr:
                     if(isinstance(cls.__dict__[attr], field.Foreign)):
+                        print(f"User value type: {type(user_value)} and foreign class type {MetaTable.foreign_class_list[table_name]}")
                         if(isinstance(user_value, int)):
                             matches = db.scan(table_name, operator, columnName, user_value)
                             updatedForeign = True
@@ -141,12 +142,13 @@ class MetaTable(type):
                             matches_lat = set(matches_lat)
                             matches_lon = set(matches_lon)
                             matches = matches_lat.intersection(matches_lon)
+                            matches = list(matches)
                             updatedCoordinate = True
                     
                     elif(isinstance(cls.__dict__[attr], field.DateTime)):
                         user_value = str(user_value)
 
-            if(not (updatedForeign and updatedCoordinate))
+            if(not (updatedForeign or updatedCoordinate)):
                 matches = db.scan(table_name, operator, columnName, user_value)
         else:
             operator = 1
