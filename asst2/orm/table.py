@@ -92,7 +92,6 @@ class MetaTable(type):
         columnName = 0
         operator = 0
 
-        
         if not kwarg == {}:
             key, value = kwarg.popitem()
             
@@ -116,6 +115,15 @@ class MetaTable(type):
             if columnName not in MetaTable.class_var_list[table_name]:
                 raise AttributeError
             
+            #add conditions for foreign and coordinates
+            for attr in MetaTable.class_var_list[table_name]:
+                if(isinstance(cls.__dict__[attr], field.Foreign)):
+                    if columnName == attr:
+                        pass #act accordingly for column being foreign key
+                elif(isinstance(cls.__dict__[attr], field.Coordinate)):
+                    pass
+
+
             matches = db.scan(table_name, operator, columnName, value)
         else:
             operator = 1
@@ -160,10 +168,8 @@ class MetaTable(type):
             elif operator == '_gt':
                 operator = 5
 
-            #check for field which DNE (case 8), currently buggy
-           # if columnName not in MetaTable.class_var_list[table_name]:
-           #     raise AttributeError
-
+            if columnName not in MetaTable.class_var_list[table_name] and columnName != 'id':
+                raise AttributeError
 
             matches = db.scan(table_name, operator, columnName, value)
 
