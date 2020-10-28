@@ -88,12 +88,12 @@ class MetaTable(type):
         table_name = cls.__name__
         matches = list()
         objectList = list()
-        value = 0
+        user_value = 0
         columnName = 0
         operator = 0
 
         if not kwarg == {}:
-            key, value = kwarg.popitem()
+            key, user_value = kwarg.popitem()
             
             if "_" in key:
                 if not (key.endswith("_ne") or key.endswith("_gt") or key.endswith("_lt")):
@@ -115,16 +115,39 @@ class MetaTable(type):
             if columnName not in MetaTable.class_var_list[table_name]:
                 raise AttributeError
             
+            updatedForeign = False
+            updatedCoordinate = False
+            matches = []
             #add conditions for foreign and coordinates
             for attr in MetaTable.class_var_list[table_name]:
-                if(isinstance(cls.__dict__[attr], field.Foreign)):
-                    if columnName == attr:
-                        pass #act accordingly for column being foreign key
-                elif(isinstance(cls.__dict__[attr], field.Coordinate)):
-                    pass
+                if columnName == attr:
+                    if(isinstance(cls.__dict__[attr], field.Foreign)):
+                        if(isinstance(user_value, int)):
+                            matches = db.scan(table_name, operator, columnName, user_value)
+                            updatedForeign = True
+                        elif(type(user_value) == MetaTable.foreign_class_list[table_name]):
+                            matches = db.scan(table_name, operator, columnName, user_value.pk)
+                            updatedForeign = True
+                        else:
+                            raise TypeError()
 
 
-            matches = db.scan(table_name, operator, columnName, value)
+                    elif(isinstance(cls.__dict__[attr], field.Coordinate)):
+                        if(len(user_value) ==2):
+                            scan_lat = user_value[0]
+                            matches_lat = db.scan(table_name, operator, columnName, scan_lat)
+                            scan_lon = user_value[1]
+                            matches_lon = db.scan(table_name, operator, columnName, scan_lon)
+                            matches_lat = set(matches_lat)
+                            matches_lon = set(matches_lon)
+                            matches = matches_lat.intersection(matches_lon)
+                            updatedCoordinate = True
+                    
+                    elif(isinstance(cls.__dict__[attr], field.DateTime)):
+                        user_value = str(user_value)
+
+            if(not (updatedForeign and updatedCoordinate))
+                matches = db.scan(table_name, operator, columnName, user_value)
         else:
             operator = 1
             matches = db.scan(table_name, operator)
