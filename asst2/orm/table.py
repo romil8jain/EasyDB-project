@@ -92,6 +92,7 @@ class MetaTable(type):
         columnName = 0
         operator = 0
 
+        
         if not kwarg == {}:
             key, value = kwarg.popitem()
             
@@ -104,25 +105,27 @@ class MetaTable(type):
             else:
                 columnName = key
                 operator = 2
-            if operator == 'ne':
+            if operator == '_ne':
                 operator = 3
-            elif operator == 'lt':
+            elif operator == '_lt':
                 operator = 4
-            else:
+            elif operator == '_gt':
                 operator = 5
 
-            if columnName not in cls.__dict__:
+            #column DNE
+            if columnName not in MetaTable.class_var_list[table_name]:
                 raise AttributeError
             
             matches = db.scan(table_name, operator, columnName, value)
-            print(matches)
         else:
             operator = 1
             matches = db.scan(table_name, operator)
-            print(matches)
         
+        if matches == []:
+            return matches
+
         for pk in matches:
-            obj = self.get(cls, db, pk)
+            obj = cls.get(db=db, pk=pk)
             objectList.append(obj)
 
         return objectList
