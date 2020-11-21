@@ -63,6 +63,7 @@ pub fn handle_request(request: Request, db: & mut Database)
  * TODO: Implment these EasyDB functions
  */
  
+#[allow(non_snake_case)]
 fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>) 
     -> Result<Response, i32> 
 {
@@ -131,11 +132,18 @@ fn handle_drop(db: & mut Database, table_id: i32, object_id: i64)
     Err(Response::UNIMPLEMENTED)
 }
 
-
+#[allow(non_snake_case)]
 fn handle_get(db: & Database, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
-    Err(Response::UNIMPLEMENTED)
+    let Table_id = table_id - 1;
+    let t_pk = db.Tables[Table_id as usize].t_pk;
+    let (version, vec_values) = match db.Tables[Table_id as usize].t_values.get(&t_pk){
+        Some(returned_tup) => returned_tup,
+        None => return Err(Response::NOT_FOUND),
+    };
+
+    return Ok(Response::Get(*version, &vec_values));
 }
 
 fn handle_query(db: & Database, table_id: i32, column_id: i32,
