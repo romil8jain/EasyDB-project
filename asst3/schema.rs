@@ -11,6 +11,7 @@ use std::fs;
 use std::io;
 use std::fmt;
 use packet::Value;
+use std::collections::HashMap;
 
 pub struct Column {
     pub c_name: String, /* column name */
@@ -23,6 +24,8 @@ pub struct Table {
     pub t_name: String,
     pub t_id: i32,
     pub t_cols: Vec<Column>,
+    pub t_values: HashMap<i64, (i64, Vec<Value>)>, // <pk, (version, values)>
+    pub t_pk: i64,
 }
 
 impl Column {
@@ -31,8 +34,8 @@ impl Column {
             c_name: cname,
             c_id:   cid,
             c_type: ctype,
-            c_ref: cref,
-        }
+            c_ref: cref, 
+        }          
     }
     
     fn type_as_str(& self) -> String {
@@ -45,13 +48,17 @@ impl Column {
         }
     }
 }
-
+    
 impl Table {
     fn new(name: String, tid: i32, tcols: Vec<Column>) -> Table {
+        let row_s: HashMap<i64, (i64, Vec<Value>)> = HashMap::new();
+        let init_val_tpk = 0;
         Table {
             t_name: name,
             t_id: tid,
             t_cols: tcols,
+            t_values: row_s,
+            t_pk: init_val_tpk,
         }
     }
 }
@@ -153,7 +160,7 @@ fn parse_column<'a, I>(it: &mut I, column_id: i32, tables: & Vec<Table>)
                 None => return Err("cannot find reference table"),
             };
             Column::new(column_name.to_string(), column_id, Value::FOREIGN,
-                index as i32 + 1)
+                index as i32 + 1) // only column that stores foreign id has table_ref or c_ref
         }
     };
     

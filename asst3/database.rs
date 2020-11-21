@@ -8,6 +8,7 @@
  */
 
 use packet::{Command, Request, Response, Value};
+use schema::Table;
  
  
 /* OP codes for the query command */
@@ -21,7 +22,17 @@ pub const OP_GE: i32 = 7;
 
 /* You can implement your Database structure here
  * Q: How you will store your tables into the database? */
-pub struct Database { }
+pub struct Database { 
+    pub Tables: Vec<Table>,
+}
+
+impl Database {
+    pub fn new(tables: Vec<Table>) -> Database{
+        Database{
+            Tables: tables,
+        }
+    }
+}
 
 /* Receive the request packet from client and send a response back */
 pub fn handle_request(request: Request, db: & mut Database) 
@@ -55,9 +66,59 @@ pub fn handle_request(request: Request, db: & mut Database)
 fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>) 
     -> Result<Response, i32> 
 {
-    Err(Response::UNIMPLEMENTED)
+
+    if table_id as usize > db.Tables.len() || table_id == 0{
+        return Err(Response::BAD_TABLE); // problem: mostly works correctly
+    }
+
+    let Table_id = table_id -1; // problem: mostly works correctly
+
+    // check if column length and values length is same
+    if db.Tables[Table_id as usize].t_cols.len() != values.len(){
+        return Err(Response::BAD_ROW);
+    }
+
+
+    for i in 0..values.len(){
+        match &values[i]{
+            Value:: Integer(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::INTEGER{
+                    return Err(Response::BAD_VALUE);
+                }
+            },
+            Value:: Float(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::FLOAT{
+                    return Err(Response::BAD_VALUE);
+                }
+            },
+            Value:: Text(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::STRING{
+                    return Err(Response::BAD_VALUE);
+                }
+            },
+            Value:: Foreign(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::FOREIGN{
+                    return Err(Response::BAD_VALUE);
+                }
+
+                let foreign_table_id = db.Tables[Table_id as usize].t_cols[i].c_ref;
+
+                match db.Tables[foreign_table_id as usize].t_values.get(&val){
+                    None => return Err(Response::BAD_FOREIGN),
+                    _ => {}
+                }
+            },
+            _ => println!("Shouldnt have reached here"),
+        }
+    }
+
+    db.Tables[Table_id as usize].t_pk+= 1; 
+    let t_pk = db.Tables[Table_id as usize].t_pk;
+    db.Tables[Table_id as usize].t_values.insert(t_pk, (1, values));
+    return Ok(Response::Insert(t_pk, 1));
 }
 
+//get_mut method of hashmap
 fn handle_update(db: & mut Database, table_id: i32, object_id: i64, 
     version: i64, values: Vec<Value>) -> Result<Response, i32> 
 {
@@ -69,6 +130,7 @@ fn handle_drop(db: & mut Database, table_id: i32, object_id: i64)
 {
     Err(Response::UNIMPLEMENTED)
 }
+
 
 fn handle_get(db: & Database, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
