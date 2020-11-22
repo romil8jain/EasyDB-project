@@ -170,7 +170,7 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
     
     let mut version_returned:i64;
     match db.Tables[Table_id as usize].t_values.get(&object_id){
-        Some(returned_tup) => version = returned_tup.0;
+        Some(returned_tup) => version_returned = returned_tup.0,
         None => return Err(Response::NOT_FOUND),
     };
     
