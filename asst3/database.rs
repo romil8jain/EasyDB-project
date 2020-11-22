@@ -208,9 +208,22 @@ fn handle_drop(db: & mut Database, table_id: i32, object_id: i64)
         _ => {},
     };
 
+    // delete all rows in other tables that were referencing this row
     for i in 0..db.Tables[Table_id as usize].t_foreign_refs.len(){
         handle_drop(db, db.Tables[Table_id as usize].t_foreign_refs[i].0, db.Tables[Table_id as usize].t_foreign_refs[i].1);
     }    
+
+    // remove the foreign_ref from the table that it was referencing
+    for i in 0..db.Tables[Table_id as usize].t_cols.len(){
+        if db.Tables[Table_id as usize].t_cols[i].c_type == Value::FOREIGN {
+            let foreign_table_id = db.Tables[Table_id as usize].t_cols[i].c_ref - 1;
+
+            if let Some(pos) = db.Tables[foreign_table_id as usize].t_foreign_refs.iter().position(|x| *x == (table_id, object_id)) {
+                db.Tables[foreign_table_id as usize].t_foreign_refs.remove(pos);
+            }
+        }
+    }
+    
 
     db.Tables[Table_id as usize].t_values.remove(&object_id);
     return Ok(Response::Drop);
