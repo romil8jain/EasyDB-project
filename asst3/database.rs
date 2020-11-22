@@ -143,12 +143,13 @@ fn handle_get(db: & Database, table_id: i32, object_id: i64)
 
     let Table_id = table_id - 1;
     let t_pk = db.Tables[Table_id as usize].t_pk;
-    let (version, vec_values) = match db.Tables[Table_id as usize].t_values.get(&t_pk){
-        Some(returned_tup) => returned_tup,
+    let not_found = false;
+    match db.Tables[Table_id as usize].t_values.get(&t_pk){
+        Some(returned_tup) => return Ok(Response::Get(returned_tup.0, &returned_tup.1)),
         None => return Err(Response::NOT_FOUND),
     };
 
-    return Ok(Response::Get(*version, &vec_values));
+    // return Ok(Response::Get(*version, &vec_values));
 }
 
 fn handle_query(db: & Database, table_id: i32, column_id: i32,
