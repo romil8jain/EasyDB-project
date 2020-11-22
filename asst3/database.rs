@@ -79,7 +79,11 @@ fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>)
         return Err(Response::BAD_ROW);
     }
 
+    // Increase value of rows
+    db.Tables[Table_id as usize].t_pk+= 1; 
+    let t_pk = db.Tables[Table_id as usize].t_pk;
 
+    // Error checking in columns to check if passed values matches schema
     for i in 0..values.len(){
         match &values[i]{
             Value:: Integer(val) => {
@@ -108,13 +112,15 @@ fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>)
                     None => return Err(Response::BAD_FOREIGN),
                     _ => {}
                 }
+
+                // problem: remember I am pushing the same kind of table_id here that a user may push
+                db.Tables[foreign_table_id as usize].t_foreign_refs.push((table_id, t_pk)); 
+                
             },
             _ => println!("Shouldnt have reached here"),
         }
     }
 
-    db.Tables[Table_id as usize].t_pk+= 1; 
-    let t_pk = db.Tables[Table_id as usize].t_pk;
     db.Tables[Table_id as usize].t_values.insert(t_pk, (1, values));
     return Ok(Response::Insert(t_pk, 1));
 }
@@ -163,6 +169,9 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
                     None => return Err(Response::BAD_FOREIGN),
                     _ => {}
                 }
+
+                // problem: remember I am pushing the same kind of table_id here that a user may push
+                db.Tables[foreign_table_id as usize].t_foreign_refs.push((table_id.clone(), object_id.clone())); 
             },
             _ => println!("Shouldnt have reached here"),
         }
@@ -174,10 +183,8 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
         None => return Err(Response::NOT_FOUND),
     };
 
-    
-    println!("version is {} and version_returned is {}", version, version_returned);
-    
-    if version == 0{
+
+    if version == 0 {
         db.Tables[Table_id as usize].t_values.insert(object_id, (version_returned, values));
         return Ok(Response::Update(version_returned));
     }
@@ -190,7 +197,23 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
 fn handle_drop(db: & mut Database, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
-    Err(Response::UNIMPLEMENTED)
+    if table_id as usize > db.Tables.len() || table_id == 0{
+        return Err(Response::BAD_TABLE); // problem: mostly works correctly
+    }
+
+    let Table_id = table_id - 1;
+
+    match db.Tables[Table_id as usize].t_values.get(&object_id){
+        None => return Err(Response::NOT_FOUND),
+        _ => {},
+    };
+
+    for i in 0..db.Tables[Table_id as usize].t_foreign_refs.len(){
+        handle_drop(db, db.Tables[Table_id as usize].t_foreign_refs[i].0, db.Tables[Table_id as usize].t_foreign_refs[i].1);
+    }    
+
+    db.Tables[Table_id as usize].t_values.remove(&object_id);
+    return Ok(Response::Drop);
 }
 
 #[allow(non_snake_case)]
