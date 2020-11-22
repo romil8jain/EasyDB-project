@@ -175,6 +175,7 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
     };
 
     
+    println!("version is {} and version_returned is {}", version, version_returned);
     
     if version == 0{
         db.Tables[Table_id as usize].t_values.insert(object_id, (version_returned, values));
