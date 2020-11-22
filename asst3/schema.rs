@@ -26,6 +26,7 @@ pub struct Table {
     pub t_cols: Vec<Column>,
     pub t_values: HashMap<i64, (i64, Vec<Value>)>, // <pk, (version, values)>
     pub t_pk: i64,
+    pub t_foreign_refs: Vec<(i32, i64)> // table_id, object_id in foreign table(s) that should be deleted
 }
 
 impl Column {
@@ -52,6 +53,7 @@ impl Column {
 impl Table {
     fn new(name: String, tid: i32, tcols: Vec<Column>) -> Table {
         let row_s: HashMap<i64, (i64, Vec<Value>)> = HashMap::new();
+        let foreign_refs: Vec<(i32, i64)> = Vec::new();
         let init_val_tpk = 0;
         Table {
             t_name: name,
@@ -59,6 +61,7 @@ impl Table {
             t_cols: tcols,
             t_values: row_s,
             t_pk: init_val_tpk,
+            t_foreign_refs: foreign_refs,
         }
     }
 }
