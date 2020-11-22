@@ -265,7 +265,10 @@ fn handle_query(db: & Database, table_id: i32, column_id: i32,
         return Err(Response::BAD_QUERY); // problem: mostly works correctly
     }
 
-    
+    if operator == OP_AL && column_id !=0 {
+        return Err(Response::BAD_QUERY);
+    }
+
     // OP_AL column field ignored
     if operator == OP_AL{
         for (key, somevalue) in &db.Tables[Table_id as usize].t_values {
@@ -274,7 +277,29 @@ fn handle_query(db: & Database, table_id: i32, column_id: i32,
         return Ok(Response::Query(list));
     }
 
-    //foreign thing for column_id = 0 
+    match &other{
+        Value:: Integer(val) => {
+            if db.Tables[Table_id as usize].t_cols[Column_id as usize].c_type != Value::INTEGER{
+                return Err(Response::BAD_QUERY);
+            }
+        },
+        Value:: Float(val) => {
+            if db.Tables[Table_id as usize].t_cols[Column_id as usize].c_type != Value::FLOAT{
+                return Err(Response::BAD_QUERY);
+            }
+        },
+        Value:: Text(val) => {
+            if db.Tables[Table_id as usize].t_cols[Column_id as usize].c_type != Value::STRING{
+                return Err(Response::BAD_QUERY);
+            }
+        },
+        Value:: Foreign(val) => {
+            if db.Tables[Table_id as usize].t_cols[Column_id as usize].c_type != Value::FOREIGN{
+                return Err(Response::BAD_QUERY);
+            }
+        },
+        _ => return Err(Response::BAD_QUERY),
+    }
 
     if db.Tables[Table_id as usize].t_cols[Column_id as usize].c_type == Value::FOREIGN || column_id == 0 {
         let foreign_id = match other {
