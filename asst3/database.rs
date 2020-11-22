@@ -102,7 +102,7 @@ fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>)
                     return Err(Response::BAD_VALUE);
                 }
 
-                let foreign_table_id = db.Tables[Table_id as usize].t_cols[i].c_ref;
+                let foreign_table_id = db.Tables[Table_id as usize].t_cols[i].c_ref -1;
 
                 match db.Tables[foreign_table_id as usize].t_values.get(&val){
                     None => return Err(Response::BAD_FOREIGN),
