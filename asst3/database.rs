@@ -115,6 +115,7 @@ fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>)
 
     db.Tables[Table_id as usize].t_pk+= 1; 
     let t_pk = db.Tables[Table_id as usize].t_pk;
+    println!("Table id is {} and pk is {}", Table_id, t_pk);
     db.Tables[Table_id as usize].t_values.insert(t_pk, (1, values));
     return Ok(Response::Insert(t_pk, 1));
 }
@@ -136,6 +137,10 @@ fn handle_drop(db: & mut Database, table_id: i32, object_id: i64)
 fn handle_get(db: & Database, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
+    if table_id as usize > db.Tables.len() || table_id == 0{
+        return Err(Response::BAD_TABLE); // problem: mostly works correctly
+    }
+
     let Table_id = table_id - 1;
     let t_pk = db.Tables[Table_id as usize].t_pk;
     let (version, vec_values) = match db.Tables[Table_id as usize].t_values.get(&t_pk){
