@@ -69,10 +69,10 @@ fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>)
 {
 
     if table_id as usize > db.Tables.len() || table_id == 0{
-        return Err(Response::BAD_TABLE); // problem: mostly works correctly
+        return Err(Response::BAD_TABLE); 
     }
 
-    let Table_id = table_id -1; // problem: mostly works correctly
+    let Table_id = table_id -1; 
 
     // check if column length and values length is same
     if db.Tables[Table_id as usize].t_cols.len() != values.len(){
@@ -123,7 +123,65 @@ fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>)
 fn handle_update(db: & mut Database, table_id: i32, object_id: i64, 
     version: i64, values: Vec<Value>) -> Result<Response, i32> 
 {
-    Err(Response::UNIMPLEMENTED)
+    if table_id as usize > db.Tables.len() || table_id == 0{
+        return Err(Response::BAD_TABLE); // problem: mostly works correctly
+    }
+
+    let Table_id = table_id -1; // problem: mostly works correctly
+
+    // check if column length and values length is same
+    if db.Tables[Table_id as usize].t_cols.len() != values.len(){
+        return Err(Response::BAD_ROW);
+    }
+
+
+    for i in 0..values.len(){
+        match &values[i]{
+            Value:: Integer(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::INTEGER{
+                    return Err(Response::BAD_VALUE);
+                }
+            },
+            Value:: Float(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::FLOAT{
+                    return Err(Response::BAD_VALUE);
+                }
+            },
+            Value:: Text(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::STRING{
+                    return Err(Response::BAD_VALUE);
+                }
+            },
+            Value:: Foreign(val) => {
+                if db.Tables[Table_id as usize].t_cols[i].c_type != Value::FOREIGN{
+                    return Err(Response::BAD_VALUE);
+                }
+
+                let foreign_table_id = db.Tables[Table_id as usize].t_cols[i].c_ref -1;
+
+                match db.Tables[foreign_table_id as usize].t_values.get(&val){
+                    None => return Err(Response::BAD_FOREIGN),
+                    _ => {}
+                }
+            },
+            _ => println!("Shouldnt have reached here"),
+        }
+    }
+    
+    let mut version_returned:i64;
+    match db.Tables[Table_id as usize].t_values.get(&object_id){
+        Some(returned_tup) => version = returned_tup.0;
+        None => return Err(Response::NOT_FOUND),
+    };
+    
+    if version == 0{
+        db.Tables[Table_id as usize].t_values.insert(object_id, (version, values));
+        return Ok(Response::Update(version));
+    }
+    else{
+        db.Tables[Table_id as usize].t_values.insert(object_id, (version_returned, values));
+        return Ok(Response::Update(version_returned));
+    }
 }
 
 fn handle_drop(db: & mut Database, table_id: i32, object_id: i64) 
