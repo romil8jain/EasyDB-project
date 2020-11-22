@@ -173,14 +173,16 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
         Some(returned_tup) => version_returned = returned_tup.0,
         None => return Err(Response::NOT_FOUND),
     };
+
+    
     
     if version == 0{
-        db.Tables[Table_id as usize].t_values.insert(object_id, (version, values));
-        return Ok(Response::Update(version));
-    }
-    else{
         db.Tables[Table_id as usize].t_values.insert(object_id, (version_returned, values));
         return Ok(Response::Update(version_returned));
+    }
+    else{
+        db.Tables[Table_id as usize].t_values.insert(object_id, (version, values));
+        return Ok(Response::Update(version));
     }
 }
 
