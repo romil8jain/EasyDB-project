@@ -226,7 +226,6 @@ fn handle_drop(db: & mut Database, table_id: i32, object_id: i64)
             }
         }
     }
-    
 
     db.Tables[Table_id as usize].t_values.remove(&object_id);
     return Ok(Response::Drop);
@@ -253,6 +252,108 @@ fn handle_query(db: & Database, table_id: i32, column_id: i32,
     operator: i32, other: Value) 
     -> Result<Response, i32>
 {
-    Err(Response::UNIMPLEMENTED)
+
+    let Table_id = table_id - 1;
+    let Column_id = column_id - 1;
+    let mut list: Vec<i64> = Vec::new();
+
+    if table_id as usize > db.Tables.len() || table_id == 0{
+        return Err(Response::BAD_TABLE); // problem: mostly works correctly
+    }
+
+    if column_id as usize > db.Tables[Table_id as usize].t_cols.len(){
+        return Err(Response::BAD_QUERY); // problem: mostly works correctly
+    }
+
+    
+    // OP_AL column field ignored
+    if operator == OP_AL{
+        for (key, somevalue) in &db.Tables[Table_id as usize].t_values {
+            list.push(*key);
+        }
+        return Ok(Response::Query(list));
+    }
+
+    //foreign thing for column_id = 0 
+
+    if db.Tables[Table_id as usize].t_cols[Column_id as usize].c_type == Value::FOREIGN || column_id == 0 {
+        let foreign_id = match other {
+            Value::Foreign(f) => f,
+            _ =>  0,
+        };
+
+        match operator {
+            OP_EQ => {
+                for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                    if column_id == 0 && *key == foreign_id{
+                        list.push(*key);
+                    }
+                    else if val.1[Column_id as usize] == other{
+                        list.push(*key);
+                    }
+                }
+            },
+            OP_NE => {
+                for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                    if column_id == 0 && *key != foreign_id{
+                        list.push(*key);
+                    }
+                    else if val.1[Column_id as usize] != other{
+                        list.push(*key);
+                    }
+                }
+            },
+            _ => return Err(Response::BAD_QUERY),
+        }
+        return Ok(Response::Query(list));
+    }
+
+    match operator {
+        OP_GE => {
+            for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                if val.1[Column_id as usize] >= other {
+                    list.push(*key);
+                }
+            }
+        }
+        OP_GT => {
+            for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                if val.1[Column_id as usize] > other {
+                    list.push(*key);
+                }
+            }
+        }
+        OP_LE => {
+            for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                if val.1[Column_id as usize] <= other {
+                    list.push(*key);
+                }
+            }
+        }
+        OP_LT => {
+            for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                if val.1[Column_id as usize] < other {
+                    list.push(*key);
+                }
+            }
+        }
+        OP_EQ => {
+            for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                if val.1[Column_id as usize] == other{
+                    list.push(*key);
+                }
+            }
+        },
+        OP_NE => {
+            for (key, val) in db.Tables[Table_id as usize].t_values.iter() {
+                if val.1[Column_id as usize] != other{
+                    list.push(*key);
+                }
+            }
+        },
+        _ => return Err(Response::BAD_QUERY),
+    }
+    return Ok(Response::Query(list));
 }
+
 
