@@ -181,10 +181,13 @@ fn handle_update(db: & mut Database, table_id: i32, object_id: i64,
         db.Tables[Table_id as usize].t_values.insert(object_id, (version_returned, values));
         return Ok(Response::Update(version_returned));
     }
-    else{
-        db.Tables[Table_id as usize].t_values.insert(object_id, (version, values));
-        return Ok(Response::Update(version));
+    if version_returned != version+1{
+        return Err(Response::TXN_ABORT);
     }
+
+    db.Tables[Table_id as usize].t_values.insert(object_id, (version +1, values));
+    return Ok(Response::Update(version +1));
+    
 }
 
 fn handle_drop(db: & mut Database, table_id: i32, object_id: i64) 
