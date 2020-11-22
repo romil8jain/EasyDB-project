@@ -67,7 +67,7 @@ pub fn handle_request(request: Request, db: & mut Database)
 fn handle_insert(db: & mut Database, table_id: i32, values: Vec<Value>) 
     -> Result<Response, i32> 
 {
-
+    println!("Initial Table id is {}", table_id);
     if table_id as usize > db.Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
     }
