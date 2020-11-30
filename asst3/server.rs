@@ -107,7 +107,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
      * TODO: respond with SERVER_BUSY when attempting to accept more than
      *       4 simultaneous clients.
      */
-    
+    println!("reached before num connections");
     let mut db = db_send.lock().unwrap();
     (*db).num_conn +=1;
     if (*db).num_conn >4 {
@@ -120,7 +120,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
         drop(db);
         stream.respond(&Response::Connected)?;
     }
-
+    println!("reached after num connections");
     loop {
         let request = match stream.receive() {
             Ok(request) => request,
@@ -135,10 +135,10 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
         if let Command::Exit = request.command {
             break;
         }
-        
+        println!("sending response");
         /* Send back a response */
         let response = database::handle_request(request, &db_send); // db is borrowed by handle_request
-        
+        println!("receiving response");
         stream.respond(&response)?;
         stream.flush()?;
     }
