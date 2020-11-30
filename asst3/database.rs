@@ -11,6 +11,7 @@ use packet::{Command, Request, Response, Value};
 use schema::Table;
 use std::sync::Mutex; 
 use std::sync::Arc;
+use std::sync::MutexGuard;
  
 /* OP codes for the query command */
 pub const OP_AL: i32 = 1;
@@ -41,16 +42,17 @@ impl Database {
 pub fn handle_request(request: Request, db: & Arc<Mutex<Database>>) 
     -> Response  
 {           
+    let mut db = db.lock().unwrap();
     /* Handle a valid request */
     let result = match request.command {
         Command::Insert(values) => 
-            handle_insert(db, request.table_id, values),
+            handle_insert(&mut db, request.table_id, values),
         Command::Update(id, version, values) => 
-             handle_update(db, request.table_id, id, version, values),
-        Command::Drop(id) => handle_drop(db, request.table_id, id),
-        Command::Get(id) => handle_get(db, request.table_id, id),
+             handle_update(&mut db, request.table_id, id, version, values),
+        Command::Drop(id) => handle_drop(&mut db, request.table_id, id),
+        Command::Get(id) => handle_get(&mut db, request.table_id, id),
         Command::Query(column_id, operator, value) => 
-            handle_query(db, request.table_id, column_id, operator, value),
+            handle_query(&mut db, request.table_id, column_id, operator, value),
         /* should never get here */
         Command::Exit => Err(Response::UNIMPLEMENTED),
     };
@@ -67,11 +69,10 @@ pub fn handle_request(request: Request, db: & Arc<Mutex<Database>>)
  */
  
 #[allow(non_snake_case)]
-fn handle_insert(db: & Arc<Mutex<Database>>, table_id: i32, values: Vec<Value>) 
+fn handle_insert(db: &mut MutexGuard<Database>, table_id: i32, values: Vec<Value>) 
     -> Result<Response, i32> 
 {
     
-    let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); 
@@ -131,11 +132,10 @@ fn handle_insert(db: & Arc<Mutex<Database>>, table_id: i32, values: Vec<Value>)
 }
 
 //get_mut method of hashmap
-fn handle_update(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64, 
+fn handle_update(db: &mut MutexGuard<Database>, table_id: i32, object_id: i64, 
     version: i64, values: Vec<Value>) -> Result<Response, i32> 
 {
 
-    let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
@@ -205,10 +205,9 @@ fn handle_update(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64,
     
 }
 
-fn handle_drop(db_send: & Arc<Mutex<Database>>, table_id: i32, object_id: i64) 
+fn handle_drop(db: &mut MutexGuard<Database>, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
-    let mut db = db_send.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
@@ -225,31 +224,17 @@ fn handle_drop(db_send: & Arc<Mutex<Database>>, table_id: i32, object_id: i64)
     for i in 0..(*db).Tables[Table_id as usize].t_foreign_refs.len(){
         let foreign_ref1 = (*db).Tables[Table_id as usize].t_foreign_refs[i].0;
         let foreign_ref2 = (*db).Tables[Table_id as usize].t_foreign_refs[i].1;
-        drop(db);
-        handle_drop(db_send, foreign_ref1, foreign_ref2);
-        db = db_send.lock().unwrap();
+        handle_drop(db, foreign_ref1, foreign_ref2);
     }    
-
-    // remove the foreign_ref from the table that it was referencing
-    // for i in 0..db.Tables[Table_id as usize].t_cols.len(){
-    //     if db.Tables[Table_id as usize].t_cols[i].c_type == Value::FOREIGN {
-    //         let foreign_table_id = db.Tables[Table_id as usize].t_cols[i].c_ref - 1;
-
-    //         if let Some(pos) = db.Tables[foreign_table_id as usize].t_foreign_refs.iter().position(|x| *x == (table_id, object_id)) {
-    //             db.Tables[foreign_table_id as usize].t_foreign_refs.remove(pos);
-    //         }
-    //     }
-    // }
 
     (*db).Tables[Table_id as usize].t_values.remove(&object_id);
     return Ok(Response::Drop);
 }
 
 #[allow(non_snake_case)]
-fn handle_get(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64) 
+fn handle_get(db: &mut MutexGuard<Database>, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
-    let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
@@ -264,11 +249,10 @@ fn handle_get(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64)
     // return Ok(Response::Get(*version, &vec_values));
 }
 
-fn handle_query(db: & Arc<Mutex<Database>>, table_id: i32, column_id: i32,
+fn handle_query(db: &mut MutexGuard<Database>, table_id: i32, column_id: i32,
     operator: i32, other: Value) 
     -> Result<Response, i32>
 {
-    let mut db = db.lock().unwrap();
 
     let Table_id = table_id - 1;
     let Column_id = column_id - 1;
