@@ -71,7 +71,6 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
             };
             let mut db = db.lock().unwrap();
             (*db).num_conn -=1;
-            drop(db);
         });
 
         th.join().unwrap();
@@ -110,7 +109,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
      */
     
     let mut db = db_send.lock().unwrap();
-    (*db).num_conn -=1;
+    (*db).num_conn +=1;
     if (*db).num_conn >=4 {
         stream.respond(&Response::Error(Response::SERVER_BUSY));
         return Err(io::Error::new(io::ErrorKind::Other,
