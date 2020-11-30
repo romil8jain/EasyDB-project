@@ -49,7 +49,7 @@ use std::sync::Mutex;
 fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool)
 {
     let mut db = Arc::new(Mutex::new(Database::new(table_schema)));
-
+    let mut times = 0;
     //runs in an infinite loop and keeps listening for connections
     for stream in listener.incoming() {
         let stream = stream.unwrap();
@@ -57,7 +57,7 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
         if verbose {
             println!("Connected to {}", stream.peer_addr().unwrap());
         }
-        
+        println!("Running {} times", times);
         let db = db.clone(); //clone the arc to be moved in the thread
         let th = std::thread::spawn(move || {
             // The infinite loop of listening starts here until it is disconnected
@@ -110,7 +110,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
     
     let mut db = db_send.lock().unwrap();
     (*db).num_conn +=1;
-    if (*db).num_conn >=4 {
+    if (*db).num_conn >4 {
         stream.respond(&Response::Error(Response::SERVER_BUSY));
         return Err(io::Error::new(io::ErrorKind::Other,
             "Server Busy"));
@@ -136,7 +136,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
         }
         
         /* Send back a response */
-        let response = database::handle_request(request, db_send); // db is borrowed by handle_request
+        let response = database::handle_request(request, &db_send); // db is borrowed by handle_request
         
         stream.respond(&response)?;
         stream.flush()?;
