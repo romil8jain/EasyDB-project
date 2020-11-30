@@ -71,6 +71,7 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
             };
             let mut db = db.lock().unwrap();
             (*db).num_conn -=1;
+            drop(db);
         });
 
         th.join().unwrap();
@@ -107,7 +108,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
      * TODO: respond with SERVER_BUSY when attempting to accept more than
      *       4 simultaneous clients.
      */
-
+    
     let mut db = db_send.lock().unwrap();
     (*db).num_conn -=1;
     if (*db).num_conn >=4 {
@@ -119,6 +120,7 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
         stream.respond(&Response::Connected)?;
     }
 
+    drop(db);
     loop {
         let request = match stream.receive() {
             Ok(request) => request,

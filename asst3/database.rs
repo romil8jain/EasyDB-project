@@ -70,6 +70,7 @@ pub fn handle_request(request: Request, db: & Arc<Mutex<Database>>)
 fn handle_insert(db: & Arc<Mutex<Database>>, table_id: i32, values: Vec<Value>) 
     -> Result<Response, i32> 
 {
+    
     let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
