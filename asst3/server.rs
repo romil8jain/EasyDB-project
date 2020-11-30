@@ -22,29 +22,29 @@ use std::sync::Arc;
 use std::sync::Mutex; 
 
 
-fn single_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool)
-{
+// fn single_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool)
+// {
 
-    let mut db = Database::new(table_schema);
+//     let mut db = Database::new(table_schema);
 
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
+//     for stream in listener.incoming() {
+//         let stream = stream.unwrap();
         
-        if verbose {
-            println!("Connected to {}", stream.peer_addr().unwrap());
-        }
+//         if verbose {
+//             println!("Connected to {}", stream.peer_addr().unwrap());
+//         }
         
-        // The infinite loop of listening starts here until it is disconnected
-        match handle_connection(stream, &mut db) {
-            Ok(()) => {
-                if verbose {
-                    println!("Disconnected.");
-                }
-            },
-            Err(e) => eprintln!("Connection error: {:?}", e),
-        };
-    }
-}
+//         // The infinite loop of listening starts here until it is disconnected
+//         match handle_connection(stream, &mut db) {
+//             Ok(()) => {
+//                 if verbose {
+//                     println!("Disconnected.");
+//                 }
+//             },
+//             Err(e) => eprintln!("Connection error: {:?}", e),
+//         };
+//     }
+// }
 
 fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool)
 {
@@ -61,7 +61,7 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
         let db = db.clone(); //clone the arc to be moved in the thread
         let th = std::thread::spawn(move || {
             // The infinite loop of listening starts here until it is disconnected
-            match handle_connection(stream, &mut db) {
+            match handle_connection(stream, &db) {
                 Ok(()) => {
                     if verbose {
                         println!("Disconnected.");
@@ -69,11 +69,11 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
                 },
                 Err(e) => eprintln!("Connection error: {:?}", e),
             };
-            let Database {table, num_conn} = db.lock().unwrap();
-            *num_conn -=1;
-        })
+            let mut db = db.lock().unwrap();
+            (*db).num_conn -=1;
+        });
 
-        th.join.unwrap();
+        th.join().unwrap();
     }
 }
 
@@ -99,7 +99,7 @@ pub fn run_server(table_schema: Vec<Table>, ip_address: String, verbose: bool)
 impl Network for TcpStream {}
 
 /* Receive the request packet from ORM and send a response back */
-fn handle_connection(mut stream: TcpStream, db: & mut Arc<Mutex<Database>>) 
+fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>) 
     -> io::Result<()> 
 {
     /* 
@@ -108,11 +108,12 @@ fn handle_connection(mut stream: TcpStream, db: & mut Arc<Mutex<Database>>)
      *       4 simultaneous clients.
      */
 
-    let Database {table, num_conn} = db.lock().unwrap();
-    *num_conn +=1;
-    if *num_conn >=4 {
-        stream.respond(&Response::SERVER_BUSY);
-        return(Err(Response::SERVER_BUSY));
+    let mut db = db_send.lock().unwrap();
+    (*db).num_conn -=1;
+    if (*db).num_conn >=4 {
+        stream.respond(&Response::Error(Response::SERVER_BUSY));
+        return Err(io::Error::new(io::ErrorKind::Other,
+            "Server Busy"));
     }
     else{
         stream.respond(&Response::Connected)?;
@@ -134,7 +135,7 @@ fn handle_connection(mut stream: TcpStream, db: & mut Arc<Mutex<Database>>)
         }
         
         /* Send back a response */
-        let response = database::handle_request(request, db); // db is borrowed by handle_request
+        let response = database::handle_request(request, db_send); // db is borrowed by handle_request
         
         stream.respond(&response)?;
         stream.flush()?;

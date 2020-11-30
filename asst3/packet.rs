@@ -11,7 +11,7 @@ use std::mem;
 use std::io;
 
 /* The foreign key is a reference to a row id in a separate table */
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Value {
     Null,
     Integer(i64),
@@ -27,6 +27,7 @@ impl Value {
     pub const STRING: i32 = 3;
     pub const FOREIGN: i32 = 4; 
 }
+
 
 /* Specifies the 5 available commands in EasyDB */
 #[derive(Debug)]
@@ -57,17 +58,17 @@ impl Request {
 /* we have to specify lifetime here because we are borrowing Vec<Value>
  * from a database row */
 #[derive(Debug)]
-pub enum Response<'a> {
+pub enum Response {
     Error(i32),                 /* error code (except for OK) */
     Connected,
     Insert(i64, i64),           /* id, version */
     Update(i64),                /* version */
     Drop,
-    Get(i64, &'a Vec<Value>),   /* version, values */
+    Get(i64, Vec<Value>),   /* version, values */
     Query(Vec<i64>),            /* ids */
 }
 
-impl Response<'_> {
+impl Response {
     pub const OK: i32 = 1;
     pub const NOT_FOUND: i32 = 2;       /* id not found */
     pub const BAD_TABLE: i32 = 3;       /* table not found */

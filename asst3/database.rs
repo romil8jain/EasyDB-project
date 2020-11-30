@@ -38,7 +38,7 @@ impl Database {
 }
 
 /* Receive the request packet from client and send a response back */
-pub fn handle_request(request: Request, db: & mut Arc<Mutex<Database>>) 
+pub fn handle_request(request: Request, db: & Arc<Mutex<Database>>) 
     -> Response  
 {           
     /* Handle a valid request */
@@ -67,10 +67,10 @@ pub fn handle_request(request: Request, db: & mut Arc<Mutex<Database>>)
  */
  
 #[allow(non_snake_case)]
-fn handle_insert(db: & mut Arc<Mutex<Database>>, table_id: i32, values: Vec<Value>) 
+fn handle_insert(db: & Arc<Mutex<Database>>, table_id: i32, values: Vec<Value>) 
     -> Result<Response, i32> 
 {
-    let db = db.lock().unwrap();
+    let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); 
@@ -130,11 +130,11 @@ fn handle_insert(db: & mut Arc<Mutex<Database>>, table_id: i32, values: Vec<Valu
 }
 
 //get_mut method of hashmap
-fn handle_update(db: & mut Arc<Mutex<Database>>, table_id: i32, object_id: i64, 
+fn handle_update(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64, 
     version: i64, values: Vec<Value>) -> Result<Response, i32> 
 {
 
-    let db = db.lock().unwrap();
+    let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
@@ -204,10 +204,10 @@ fn handle_update(db: & mut Arc<Mutex<Database>>, table_id: i32, object_id: i64,
     
 }
 
-fn handle_drop(db_send: & mut Arc<Mutex<Database>>, table_id: i32, object_id: i64) 
+fn handle_drop(db_send: & Arc<Mutex<Database>>, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
-    let db = db_send.lock().unwrap();
+    let mut db = db_send.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
@@ -244,7 +244,7 @@ fn handle_drop(db_send: & mut Arc<Mutex<Database>>, table_id: i32, object_id: i6
 fn handle_get(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64) 
     -> Result<Response, i32>
 {
-    let db = db.lock().unwrap();
+    let mut db = db.lock().unwrap();
 
     if table_id as usize > (*db).Tables.len() || table_id == 0{
         return Err(Response::BAD_TABLE); // problem: mostly works correctly
@@ -252,7 +252,7 @@ fn handle_get(db: & Arc<Mutex<Database>>, table_id: i32, object_id: i64)
 
     let Table_id = table_id - 1;
     match (*db).Tables[Table_id as usize].t_values.get(&object_id){
-        Some(returned_tup) => return Ok(Response::Get(returned_tup.0, &returned_tup.1)),
+        Some(returned_tup) => return Ok(Response::Get(returned_tup.0, returned_tup.1.clone())),
         None => return Err(Response::NOT_FOUND),
     };
 
@@ -263,7 +263,7 @@ fn handle_query(db: & Arc<Mutex<Database>>, table_id: i32, column_id: i32,
     operator: i32, other: Value) 
     -> Result<Response, i32>
 {
-    let db = db.lock().unwrap();
+    let mut db = db.lock().unwrap();
 
     let Table_id = table_id - 1;
     let Column_id = column_id - 1;
