@@ -223,7 +223,11 @@ fn handle_drop(db_send: & Arc<Mutex<Database>>, table_id: i32, object_id: i64)
 
     // delete all rows in other tables that were referencing this row
     for i in 0..(*db).Tables[Table_id as usize].t_foreign_refs.len(){
-        handle_drop(db_send, (*db).Tables[Table_id as usize].t_foreign_refs[i].0, (*db).Tables[Table_id as usize].t_foreign_refs[i].1);
+        let foreign_ref1 = (*db).Tables[Table_id as usize].t_foreign_refs[i].0;
+        let foreign_ref2 = (*db).Tables[Table_id as usize].t_foreign_refs[i].1;
+        drop(db);
+        handle_drop(db_send, foreign_ref1, foreign_ref2);
+        db = db_send.lock().unwrap();
     }    
 
     // remove the foreign_ref from the table that it was referencing
