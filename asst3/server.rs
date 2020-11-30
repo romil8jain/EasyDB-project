@@ -52,7 +52,7 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
     let mut times = 0;
     //runs in an infinite loop and keeps listening for connections
     for stream in listener.incoming() {
-        let stream = stream.unwrap();
+        let mut stream = stream.unwrap();
         times+=1;
         if verbose {
             println!("Connected to {}", stream.peer_addr().unwrap());
@@ -69,10 +69,8 @@ fn multi_threaded(listener: TcpListener, table_schema: Vec<Table>, verbose: bool
                 },
                 Err(e) => eprintln!("Connection error: {:?}", e),
             };
-            let mut db = db.lock().unwrap();
-            (*db).num_conn -=1;
+            
         });
-
         th.join().unwrap();
     }
 }
@@ -142,6 +140,9 @@ fn handle_connection(mut stream: TcpStream, db_send: & Arc<Mutex<Database>>)
         stream.respond(&response)?;
         stream.flush()?;
     }
+
+    let mut db = db_send.lock().unwrap();
+    (*db).num_conn -=1;
 
     Ok(())
 }
