@@ -1,0 +1,46 @@
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-01-insert.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:5517, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-02-update.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:9292, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-03-drop.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:6414, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-04-scan.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:2944, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-05-stress.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:8340, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-06-parallel.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:7376, fd: 3 }
+Connection error: Custom { kind: Other, error: "Invalid command" }
+Connection error: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-07-speedup.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:1079, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-07-speedup.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:1333, fd: 3 }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-08-limit.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:4923, fd: 3 }
+Connection error: Custom { kind: Other, error: "Invalid command" }
+Connection error: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
+
+-------- /nfs/ug/cad/cad2/ece326f/tester/scripts/lab3-09-synch.py --------
+
+Listening: TcpListener { addr: 127.0.0.1:7833, fd: 3 }
+Connection error: Custom { kind: Other, error: "Invalid command" }
+Connection error: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
