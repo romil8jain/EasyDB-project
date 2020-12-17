@@ -39,6 +39,7 @@ template <typename T> struct Protocol {
     }
 };
 
+/*
 template <> 
 struct Protocol<int> {
     static constexpr size_t TYPE_SIZE = sizeof(int);
@@ -162,6 +163,7 @@ struct Protocol<int> {
 		return true;
     }
 };
+*/
 
 // TASK2: Client-side
 class IntParam : public BaseParams {
