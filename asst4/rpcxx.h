@@ -63,17 +63,51 @@ template <>
 struct Protocol<std::string> {
     static constexpr size_t TYPE_SIZE = sizeof(std::string);
 
-    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const std::string  &x) {
-	return false;
+    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const std::string &x) {
+	int num_bytes = x.length();
+//	std::cout << "sizeof(num_bytes): " << sizeof(int) << std::endl;
+	// check if buffer is big enough to fit the data, if not, return false
+        if (*out_len < (num_bytes+4)) return false;
+
+	// Copy the size of the string into the biffer
+	memcpy(out_bytes, &(num_bytes), sizeof(int));
+	
+	// Create a temporary string
+	char* temp;
+	memcpy(&temp, &x, num_bytes);
+	memcpy(out_bytes+4, temp, num_bytes);
+	
+        *out_len = num_bytes+4;
+	std::cout << "out len: " << *out_len << std::endl;
+        return true;
     }
 
     static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, std::string &x) {
-	return false;
+	int num_bytes = 0;
+	std::cout << "Inside decode" << std::endl;
+	memcpy(&num_bytes, in_bytes, 4); //get string length
+	// check if buffer is big enough to read in x, if not, return false
+
+	std::cout << "DECODE: in_len: " << *in_len << ", num_bytes: " << num_bytes << std::endl;
+
+<<<<<<< HEAD
+
+=======
+        if (*in_len < (num_bytes+4)) return false;
+
+        // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
+	char* temp;
+	memcpy(&temp, in_bytes+4, num_bytes);
+	memcpy(&x, temp, num_bytes);
+	std::cout << "DECODE: string is " << x << std::endl;
+
+        // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
+        *in_len = num_bytes+4;
+
+        return true;
     }
 };
-
-
-
+>>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
 
 // TASK2: Client-side
 class IntParam : public BaseParams {
@@ -136,7 +170,10 @@ public:
 template<>
 class Result<void> {};
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
 // TASK2: Client-side
 class Client : public BaseClient {
  public:
@@ -160,7 +197,11 @@ class Client : public BaseClient {
 	return result;
     }
 
+<<<<<<< HEAD
 	/* add this */
+=======
+    /* add this */
+>>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
     template<typename Svc, typename RT, typename ... FA> 
     Result<RT> * Call(Svc *svc, RT (Svc::*f)(FA...), ...) {
       std::cout << "WARNING: Calling " 
@@ -178,7 +219,11 @@ class Service : public BaseService {
   	void Export(int (Svc::*func)(int)) {
 	ExportRaw(MemberFunctionPtr::From(func), new IntIntProcedure<Svc>());
     }
+<<<<<<< HEAD
 	/* add this */
+=======
+    /* add this */
+>>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
     template<typename MemberFunction>
     void Export(MemberFunction f) {
       std::cout << "WARNING: Exporting " 
