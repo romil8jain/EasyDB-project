@@ -80,47 +80,47 @@ template <typename T> struct ProtocolUniversal {
  
 template <>
 struct Protocol<std::string> {
-   static constexpr size_t TYPE_SIZE = sizeof(std::string);
+    static constexpr size_t TYPE_SIZE = sizeof(std::string);
  
-   static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const std::string &x) {
-   int num_bytes = x.length();
-//  std::cout << "sizeof(num_bytes): " << sizeof(int) << std::endl;
-   // check if buffer is big enough to fit the data, if not, return false
-       if (*out_len < (num_bytes+4)) return false;
- 
-   // Copy the size of the string into the biffer
-   memcpy(out_bytes, &(num_bytes), sizeof(int));
+    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const std::string &x) {
+    	uint32_t num_bytes = x.length();
+
+    	// check if buffer is big enough to fit the data, if not, return false
+    	if (*out_len < (num_bytes+4)) return false;
+
+    	// Copy the size of the string into the biffer
+    	memcpy(out_bytes, &num_bytes, sizeof(uint32_t));
+	// Copy the actual string into the buffer
+	memcpy(out_bytes+4, (x.data()), num_bytes);
   
-   // Create a temporary string
-   char* temp;
-   memcpy(&temp, &x, num_bytes);
-   memcpy(out_bytes+4, temp, num_bytes);
-  
-       *out_len = num_bytes+4;
-   std::cout << "out len: " << *out_len << std::endl;
-       return true;
+    	*out_len = num_bytes+4;
+       	return true;
    }
  
    static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, std::string &x) {
-   int num_bytes = 0;
-   std::cout << "Inside decode" << std::endl;
-   memcpy(&num_bytes, in_bytes, 4); //get string length
-   // check if buffer is big enough to read in x, if not, return false
+	// Check if the length of the buffer is big enough to read in num_bytes
+	if (*in_len < 4) return false;
+
+	uint32_t num_bytes = 0;
+   	memcpy(&num_bytes, in_bytes, 4);
+  
+ 	// check if buffer is big enough to read in x, if not, return false
+       	if (*in_len < (num_bytes+4)) return false;
+
+	// Read in the string value
+	std::string temp;	
+	auto it_begin2 = in_bytes+4;
+	auto it_end2 = in_bytes+4+num_bytes;
+	
+	for (auto i = it_begin2; i != it_end2; ++i)
+	{
+	    temp += *i;
+	}
+	x = temp;
  
-   std::cout << "DECODE: in_len: " << *in_len << ", num_bytes: " << num_bytes << std::endl;
- 
-       if (*in_len < (num_bytes+4)) return false;
- 
-       // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
-   char* temp;
-   memcpy(&temp, in_bytes+4, num_bytes);
-   memcpy(&x, temp, num_bytes);
-   std::cout << "DECODE: string is " << x << std::endl;
- 
-       // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
-       *in_len = num_bytes+4;
- 
-       return true;
+       	// since we consumed num_bytes_4 number of bytes from the buffer, we set *in_len to num_bytes+4
+       	*in_len = num_bytes+4;
+       	return true;
    }
 };
  
