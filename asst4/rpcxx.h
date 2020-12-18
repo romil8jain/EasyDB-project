@@ -18,6 +18,7 @@ namespace rpc {
 // types.
 template <typename T> struct Protocol {
     
+	static constexpr size_t TYPE_SIZE = sizeof(T);
     /* out_bytes: Write data into this buffer. It's size is equal to *out_len
      *   out_len: Initially, *out_len tells you the size of the buffer out_bytes.
      *            However, it is also used as a return value, so you must set *out_len
@@ -25,7 +26,16 @@ template <typename T> struct Protocol {
      *         x: the data you want to write to buffer
      */   	
     static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const T &x) {
-	return false;
+	// check if buffer is big enough to fit the data, if not, return false
+        if (*out_len < TYPE_SIZE) return false;
+
+        // do a memory copy of the data into the buffer, TYPE_SIZE is the size of the data
+        memcpy(out_bytes, &x, TYPE_SIZE);
+
+        // since we wrote TYPE_SIZE number of bytes to the buffer, we set *out_len to TYPE_SIZE
+        *out_len = TYPE_SIZE;
+
+        return true;
     }
     
     /* in_bytes: Read data from this buffer. It's size is equal to *in_len
@@ -35,104 +45,35 @@ template <typename T> struct Protocol {
      *        x: the data you want to read from the buffer
      */   
     static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, T &x) {
+	// check if buffer is big enough to read in x, if not, return false
+        if (*in_len < TYPE_SIZE) return false;
+
+        // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
+        memcpy(&x, in_bytes, TYPE_SIZE);
+
+        // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
+        *in_len = TYPE_SIZE;
+
+        return true;
+    }
+};
+
+
+template <>
+struct Protocol<std::string> {
+    static constexpr size_t TYPE_SIZE = sizeof(std::string);
+
+    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const std::string  &x) {
+	return false;
+    }
+
+    static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, std::string &x) {
 	return false;
     }
 };
 
+
 /*
-template <> 
-struct Protocol<int> {
-    static constexpr size_t TYPE_SIZE = sizeof(int);
-
-    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const int &x) {
-		// check if buffer is big enough to fit the data, if not, return false
-		if (*out_len < TYPE_SIZE) return false; 
-		
-		// do a memory copy of the data into the buffer, TYPE_SIZE is the size of the data
-		memcpy(out_bytes, &x, TYPE_SIZE);
-		
-		// since we wrote TYPE_SIZE number of bytes to the buffer, we set *out_len to TYPE_SIZE
-		*out_len = TYPE_SIZE;
-
-		return true;
-    }
-    
-    static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, int &x) {
-		// check if buffer is big enough to read in x, if not, return false
-		if (*in_len < TYPE_SIZE) return false;
-		
-		// do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
-		memcpy(&x, in_bytes, TYPE_SIZE);
-		
-		// since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
-		*in_len = TYPE_SIZE;
-		
-		return true;
-    }
-};
-
-template <> 
-struct Protocol<int> {
-    static constexpr size_t TYPE_SIZE = sizeof(int);
-
-    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const int &x) {
-		// check if buffer is big enough to fit the data, if not, return false
-		if (*out_len < TYPE_SIZE) return false; 
-		
-		// do a memory copy of the data into the buffer, TYPE_SIZE is the size of the data
-		memcpy(out_bytes, &x, TYPE_SIZE);
-		
-		// since we wrote TYPE_SIZE number of bytes to the buffer, we set *out_len to TYPE_SIZE
-		*out_len = TYPE_SIZE;
-
-		return true;
-    }
-    
-    static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, int &x) {
-		// check if buffer is big enough to read in x, if not, return false
-		if (*in_len < TYPE_SIZE) return false;
-		
-		// do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
-		memcpy(&x, in_bytes, TYPE_SIZE);
-		
-		// since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
-		*in_len = TYPE_SIZE;
-		
-		return true;
-    }
-};
-
-template <> 
-struct Protocol<int> {
-    static constexpr size_t TYPE_SIZE = sizeof(int);
-
-    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const int &x) {
-		// check if buffer is big enough to fit the data, if not, return false
-		if (*out_len < TYPE_SIZE) return false; 
-		
-		// do a memory copy of the data into the buffer, TYPE_SIZE is the size of the data
-		memcpy(out_bytes, &x, TYPE_SIZE);
-		
-		// since we wrote TYPE_SIZE number of bytes to the buffer, we set *out_len to TYPE_SIZE
-		*out_len = TYPE_SIZE;
-
-		return true;
-    }
-    
-    static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, int &x) {
-		// check if buffer is big enough to read in x, if not, return false
-		if (*in_len < TYPE_SIZE) return false;
-		
-		// do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
-		memcpy(&x, in_bytes, TYPE_SIZE);
-		
-		// since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
-		*in_len = TYPE_SIZE;
-		
-		return true;
-    }
-};
-
 template <> 
 struct Protocol<int> {
     static constexpr size_t TYPE_SIZE = sizeof(int);
