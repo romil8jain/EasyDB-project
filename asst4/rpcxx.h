@@ -2,6 +2,8 @@
 #ifndef RPCXX_H
 #define RPCXX_H
 
+#include <iostream>
+#include <typeinfo>
 #include <cstdlib>
 #include "rpc.h"
 
@@ -71,38 +73,7 @@ struct Protocol<std::string> {
 };
 
 
-/*
-template <> 
-struct Protocol<int> {
-    static constexpr size_t TYPE_SIZE = sizeof(int);
 
-    static bool Encode(uint8_t *out_bytes, uint32_t *out_len, const int &x) {
-		// check if buffer is big enough to fit the data, if not, return false
-		if (*out_len < TYPE_SIZE) return false; 
-		
-		// do a memory copy of the data into the buffer, TYPE_SIZE is the size of the data
-		memcpy(out_bytes, &x, TYPE_SIZE);
-		
-		// since we wrote TYPE_SIZE number of bytes to the buffer, we set *out_len to TYPE_SIZE
-		*out_len = TYPE_SIZE;
-
-		return true;
-    }
-    
-    static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, int &x) {
-		// check if buffer is big enough to read in x, if not, return false
-		if (*in_len < TYPE_SIZE) return false;
-		
-		// do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
-		memcpy(&x, in_bytes, TYPE_SIZE);
-		
-		// since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
-		*in_len = TYPE_SIZE;
-		
-		return true;
-    }
-};
-*/
 
 // TASK2: Client-side
 class IntParam : public BaseParams {
@@ -155,6 +126,17 @@ class IntResult : public BaseResult {
     int &data() { return r; }
 };
 
+template<typename T>
+class Result {
+  T r;
+public:
+  T &data() { return r; }
+};
+
+template<>
+class Result<void> {};
+
+
 // TASK2: Client-side
 class Client : public BaseClient {
  public:
@@ -177,6 +159,16 @@ class Client : public BaseClient {
 	}
 	return result;
     }
+
+	/* add this */
+    template<typename Svc, typename RT, typename ... FA> 
+    Result<RT> * Call(Svc *svc, RT (Svc::*f)(FA...), ...) {
+      std::cout << "WARNING: Calling " 
+            << typeid(decltype(f)).name()
+            << " is not supported\n";
+      return nullptr;
+    }
+    /* end here */
 };
 
 // TASK2: Server-side
@@ -186,6 +178,14 @@ class Service : public BaseService {
   	void Export(int (Svc::*func)(int)) {
 	ExportRaw(MemberFunctionPtr::From(func), new IntIntProcedure<Svc>());
     }
+	/* add this */
+    template<typename MemberFunction>
+    void Export(MemberFunction f) {
+      std::cout << "WARNING: Exporting " 
+                << typeid(MemberFunction).name()
+                << " is not supported\n";
+    }
+    /* end here */
 };
 
 }
