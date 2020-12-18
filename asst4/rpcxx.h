@@ -58,6 +58,25 @@ template <typename T> struct Protocol {
    }
 };
  
+template <typename T> struct ProtocolUniversal {
+  
+   static constexpr size_t TYPE_SIZE = sizeof(T);
+
+   static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, T &x) {
+   // check if buffer is big enough to read in x, if not, return false
+       if (*in_len < TYPE_SIZE) return false;
+ 
+       // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
+       memcpy(&x, in_bytes, TYPE_SIZE);
+
+	   in_bytes+=TYPE_SIZE;
+ 
+       // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
+       *in_len = *in_len - TYPE_SIZE;
+ 
+       return true;
+   }
+};
  
 template <>
 struct Protocol<std::string> {
@@ -121,30 +140,89 @@ template <typename Svc>
 class IntIntProcedure : public BaseProcedure {
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final {
-   int x;
-   // This function is similar to Decode. We need to return false if buffer
-   // isn't large enough, or fatal error happens during parsing.
-   if (!Protocol<int>::Decode(in_bytes, in_len, ok, x) || !*ok) {
-       return false;
-   }
-   // Now we cast the function pointer func_ptr to its original type.
-   //
-   // This incomplete solution only works for this type of member functions.
-   using FunctionPointerType = int (Svc::*)(int);
-   auto p = func_ptr.To<FunctionPointerType>();
-   int result = (((Svc *) instance)->*p)(x);
-   if (!Protocol<int>::Encode(out_bytes, out_len, result)) {
-       // out_len should always be large enough so this branch shouldn't be
-       // taken. However just in case, we return an fatal error by setting *ok
-       // to false.
-       *ok = false;
-       return false;
-   }
-   return true;
+                       bool *ok) override final { 
+                        //override means don’t allow derived class to override the base class’ virtual function
+		int x;
+		// This function is similar to Decode. We need to return false if buffer
+		// isn't large enough, or fatal error happens during parsing.
+		if (!Protocol<int>::Decode(in_bytes, in_len, ok, x) || !*ok) {
+			return false;
+		}
+		// Now we cast the function pointer func_ptr to its original type.
+		//
+		// This incomplete solution only works for this type of member functions.
+		using FunctionPointerType = int (Svc::*)(int);
+		auto p = func_ptr.To<FunctionPointerType>();
+
+		// EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
+		int result = (((Svc *) instance)->*p)(x); // The svc class here inherits from the service class so typecasting is allowed
+
+		if (!Protocol<int>::Encode(out_bytes, out_len, result)) {
+			// out_len should always be large enough so this branch shouldn't be
+			// taken. However just in case, we return an fatal error by setting *ok
+			// to false.
+			*ok = false;
+			return false;
+		}
+		return true;
    }
 };
- 
+
+
+// TASK2: Server-side: Trying to make universal procedure (probably not for strings)
+template <typename Svc, typename RT, typename ... Args>
+class UniversalProcedure : public BaseProcedure {
+
+	template<typename T, typename ... Vargs> 
+	bool DecodeRecursive(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok,  ... &finalargs)  {  // passing by reference here?
+                        //override means don’t allow derived class to override the base class’ virtual function
+		T x;
+		// This function is similar to Decode. We need to return false if buffer
+		// isn't large enough, or fatal error happens during parsing.
+		if (!ProtocolUniversal<T>::Decode(in_bytes, in_len, ok, x) || !*ok) {
+			return false;
+		}
+		return DecodeRecursive<Vargs ...>(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok, finalargs ..., x);
+   }
+
+	template<> 
+    bool DecodeRecursive(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok, ... &finalargs)  { 
+
+		using FunctionPointerType = RT (Svc::*)(finalargs ...);
+		auto p = func_ptr.To<FunctionPointerType>();
+
+		// EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
+		RT result = (((Svc *) instance)->*p)(x); // The svc class here inherits from the service class so typecasting is allowed
+		
+		if (!Protocol<RT>::Encode(out_bytes, out_len, result)) {
+			// out_len should always be large enough so this branch shouldn't be
+			// taken. However just in case, we return an fatal error by setting *ok
+			// to false.
+			*ok = false;
+			return false;
+		}
+		return true;
+   }
+   		
+   bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok) override final { 
+
+		return DecodeRecursive<Args ...>(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok);
+
+		
+   }
+};
+
+
 // TASK2: Client-side
 class IntResult : public BaseResult {
    int r;
@@ -205,14 +283,12 @@ template <typename Svc>
 class Service : public BaseService {
 protected:
    void Export(int (Svc::*func)(int)) {
-   ExportRaw(MemberFunctionPtr::From(func), new IntIntProcedure<Svc>());
+		ExportRaw(MemberFunctionPtr::From(func), new IntIntProcedure<Svc>());
    }
    /* add this */
-   template<typename MemberFunction>
-   void Export(MemberFunction f) {
-     std::cout << "WARNING: Exporting "
-               << typeid(MemberFunction).name()
-               << " is not supported\n";
+   template<typename RT, typename ... Args>
+   void Export(RT (Svc::*func)(Args ...)) {
+	   ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, RT, Args ...>());
    }
    /* end here */
 };

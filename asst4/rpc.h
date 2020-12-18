@@ -29,8 +29,8 @@ struct MemberFunctionPtr {
     static_assert(sizeof(MemberFunction) == sizeof(MemberFunctionPtr),
                   "Member Function Pointer isn't 16 bytes?");
     MemberFunctionPtr ptr;
-    memcpy(&ptr, &f, sizeof(MemberFunctionPtr));
-    return ptr;
+    memcpy(&ptr, &f, sizeof(MemberFunctionPtr)); //copies from parameter passed to ptr after size checking
+    return ptr; // ptr has a void* fp as one of its variables
   }
 
   template <typename MemberFunction>
@@ -38,13 +38,13 @@ struct MemberFunctionPtr {
     static_assert(sizeof(MemberFunction) == sizeof(MemberFunctionPtr),
                   "Member Function Pointer isn't 16 bytes?");
     MemberFunction f;
-    memcpy(&f, this, sizeof(MemberFunctionPtr));
+    memcpy(&f, this, sizeof(MemberFunctionPtr)); //copies memberfunctionptr into f and returns f
     return f;
   }
 };
 
 class BaseProcedure {
-  friend class Connection;
+  friend class Connection; //friend classes can use all of its methods and variables 
   friend class BaseService;
  protected:
   MemberFunctionPtr func_ptr;
