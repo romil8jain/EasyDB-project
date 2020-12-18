@@ -90,9 +90,6 @@ struct Protocol<std::string> {
 
 	std::cout << "DECODE: in_len: " << *in_len << ", num_bytes: " << num_bytes << std::endl;
 
-<<<<<<< HEAD
-
-=======
         if (*in_len < (num_bytes+4)) return false;
 
         // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
@@ -107,7 +104,6 @@ struct Protocol<std::string> {
         return true;
     }
 };
->>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
 
 // TASK2: Client-side
 class IntParam : public BaseParams {
@@ -170,10 +166,6 @@ public:
 template<>
 class Result<void> {};
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
 // TASK2: Client-side
 class Client : public BaseClient {
  public:
@@ -197,11 +189,7 @@ class Client : public BaseClient {
 	return result;
     }
 
-<<<<<<< HEAD
-	/* add this */
-=======
     /* add this */
->>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
     template<typename Svc, typename RT, typename ... FA> 
     Result<RT> * Call(Svc *svc, RT (Svc::*f)(FA...), ...) {
       std::cout << "WARNING: Calling " 
@@ -219,11 +207,7 @@ class Service : public BaseService {
   	void Export(int (Svc::*func)(int)) {
 	ExportRaw(MemberFunctionPtr::From(func), new IntIntProcedure<Svc>());
     }
-<<<<<<< HEAD
-	/* add this */
-=======
     /* add this */
->>>>>>> 9de2e0e6274fc0ad502c8742a4e97c38acd8aab7
     template<typename MemberFunction>
     void Export(MemberFunction f) {
       std::cout << "WARNING: Exporting " 
