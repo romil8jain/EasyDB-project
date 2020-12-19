@@ -127,7 +127,7 @@ struct ProtocolUniversal {
  
        // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
        memcpy(&x, in_bytes, TYPE_SIZE1);
-       memcpy(&y, in_bytes + TYPE_SIZE1, TYPE_SIZE2)
+       memcpy(&y, in_bytes + TYPE_SIZE1, TYPE_SIZE2);
  
        // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
        *in_len = TYPE_SIZE1 + TYPE_SIZE2;
@@ -180,7 +180,7 @@ struct ProtocolUniversal<std::string, T> {
 		}
 		x = temp;
 
-		memcpy(&y, in_bytes, TYPE_SIZE);
+		memcpy(&y, in_bytes+4+num_bytes, TYPE_SIZE);
 
 		// since we consumed num_bytes_4 number of bytes from the buffer, we set *in_len to num_bytes+4
 		*in_len = num_bytes+4+TYPE_SIZE;
