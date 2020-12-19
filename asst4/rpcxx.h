@@ -55,27 +55,6 @@ template <typename T> struct Protocol {
    }
 };
  
-template <typename T1, typename T2> struct ProtocolUniversal {
-  
-   static constexpr size_t TYPE_SIZE1 = sizeof(T1);
-   static constexpr size_t TYPE_SIZE2 = sizeof(T2);
-
-
-   static bool Decode(uint8_t *in_bytes, uint32_t *in_len, bool *ok, T1 &x, T2 &y) {
-   // check if buffer is big enough to read in x, if not, return false
-       if (*in_len < (TYPE_SIZE1 + TYPE_SIZE2)) return false;
- 
-       // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
-       memcpy(&x, in_bytes, TYPE_SIZE1);
-	   memcpy(&y, in_bytes + TYPE_SIZE1, TYPE_SIZE2)
- 
-       // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
-       *in_len = TYPE_SIZE1 + TYPE_SIZE2;
- 
-       return true;
-   }
-};
- 
 template <>
 struct Protocol<std::string> {
     static constexpr size_t TYPE_SIZE = sizeof(std::string);
@@ -148,7 +127,7 @@ struct ProtocolUniversal {
  
        // do a memory copy from the buffer into the data, TYPE_SIZE is the size of the data
        memcpy(&x, in_bytes, TYPE_SIZE1);
-	   memcpy(&y, in_bytes + TYPE_SIZE1, TYPE_SIZE2)
+       memcpy(&y, in_bytes + TYPE_SIZE1, TYPE_SIZE2)
  
        // since we consumed TYPE_SIZE number of bytes from the buffer, we set *in_len to TYPE_SIZE
        *in_len = TYPE_SIZE1 + TYPE_SIZE2;
@@ -372,7 +351,7 @@ class Param : public BaseParams {
    Param(T p) : p(p) {}
  
    bool Encode(uint8_t *out_bytes, uint32_t *out_len) const override {
-		return Protocol<T>::Encode(out_bytes, out_len, p);
+	return Protocol<T>::Encode(out_bytes, out_len, p);
    }
 };
 
@@ -389,7 +368,7 @@ class NoParam : public BaseParams {
 
  
 // TASK2: Server-side
-template <typename Svc>
+/*template <typename Svc>
 class IntIntProcedure : public BaseProcedure {
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
@@ -419,17 +398,48 @@ class IntIntProcedure : public BaseProcedure {
 		}
 		return true;
    }
-};
+};*/
 
 
 // TASK2: Server-side SPECIALIZATION
 
-// void with return void implementation
-template <typename Svc>
-class UniversalProcedure : public BaseProcedure {
+// void params with return RT implementation
+template <typename Svc, typename RT>
+class NoParamProcedure : public BaseProcedure {
+//   template <typename Svc>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final {
+
+
+                *in_len = 0;
+                // Now we cast the function pointer func_ptr to its original type.
+                //
+                // This incomplete solution only works for this type of member functions.
+                using FunctionPointerType = RT (Svc::*)();
+                auto p = func_ptr.To<FunctionPointerType>();
+
+                // EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
+                RT result = (((Svc *) instance)->*p)(); // The svc class here inherits from the service class so typecasting is allowed
+
+                if (!Protocol<RT>::Encode(out_bytes, out_len, result)) {
+                        // out_len should always be large enough so this branch shouldn't be
+                        // taken. However just in case, we return an fatal error by setting *ok
+                        // to false.
+                        *ok = false;
+                        return false;
+                }
+                return true;
+   }
+};
+
+// void with return void implementation
+template <typename Svc>
+class NoParamProcedure<Svc, void> : public BaseProcedure {
+//   template <typename Svc>
+   bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok) { //override final { 
 
 
 		*in_len = 0;
@@ -439,19 +449,52 @@ class UniversalProcedure : public BaseProcedure {
 		using FunctionPointerType = void (Svc::*)();
 		auto p = func_ptr.To<FunctionPointerType>();
 
-		// EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
 		(((Svc *) instance)->*p)(); // The svc class here inherits from the service class so typecasting is allowed
 
+		*out_len = 0;
 		return true;
    }
 };
 
-//void with 2 parameters
-template <typename Svc, void, typename T1, typename T2>
-class UniversalProcedure : public BaseProcedure {
+/*
+// void with return void implementation
+template <typename Svc, typename RT>
+class NoParamProcedure : public BaseProcedure {
+//   template <typename Svc>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final {
+
+
+                *in_len = 0;
+                // Now we cast the function pointer func_ptr to its original type.
+                //
+                // This incomplete solution only works for this type of member functions.
+                using FunctionPointerType = RT (Svc::*)();
+                auto p = func_ptr.To<FunctionPointerType>();
+
+		// EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
+                RT result = (((Svc *) instance)->*p)(); // The svc class here inherits from the service class so typecasting is allowed
+
+                if (!Protocol<RT>::Encode(out_bytes, out_len, result)) {
+                        // out_len should always be large enough so this branch shouldn't be
+                        // taken. However just in case, we return an fatal error by setting *ok
+                        // to false.
+                        *ok = false;
+                        return false;
+                }
+                return true;
+   }
+};
+*/
+
+//void with 2 parameters
+template <typename Svc, typename RT, typename T1, typename T2>
+class TwoParamProcedure : public BaseProcedure {
+//   template <typename Svc, typename RT, typename T1, typename T2>
+   bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok) { //override final { 
 
 
 		T1 x;
@@ -465,22 +508,63 @@ class UniversalProcedure : public BaseProcedure {
 		// Now we cast the function pointer func_ptr to its original type.
 		//
 		// This incomplete solution only works for this type of member functions.
-		using FunctionPointerType = void (Svc::*)(T1, T2);
+		using FunctionPointerType = RT (Svc::*)(T1, T2);
 		auto p = func_ptr.To<FunctionPointerType>();
 
 		// EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
-		(((Svc *) instance)->*p)(x, y); // The svc class here inherits from the service class so typecasting is allowed
+                RT result = (((Svc *) instance)->*p)(x, y); // The svc class here inherits from the service class so typecasting is allowed
+
+		if (!Protocol<RT>::Encode(out_bytes, out_len, result)) {
+                        // out_len should always be large enough so this branch shouldn't be
+                        // taken. However just in case, we return an fatal error by setting *ok
+                        // to false.
+                        *ok = false;
+                        return false;
+                }
 
 		return true;
    }
 };
 
-//void with 1 strings
-template <typename Svc, void, std::string, typename T2>
-class UniversalProcedure : public BaseProcedure {
+//void with 2 parameters
+template <typename Svc, typename T1, typename T2>
+class TwoParamProcedure<Svc, void, T1, T2> : public BaseProcedure {
+//   template <typename Svc, typename RT, typename T1, typename T2>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final {
+
+
+                T1 x;
+                T2 y;
+                // This function is similar to Decode. We need to return false if buffer
+                // isn't large enough, or fatal error happens during parsing.
+                if (!ProtocolUniversal<T1, T2>::Decode(in_bytes, in_len, ok, x, y) || !*ok) {
+                        return false;
+                }
+
+                // Now we cast the function pointer func_ptr to its original type.
+                //
+                // This incomplete solution only works for this type of member functions.
+                using FunctionPointerType = void (Svc::*)(T1, T2);
+                auto p = func_ptr.To<FunctionPointerType>();
+
+                // EXECUTION STEP: we call the function of the Svc class here and get the result and encode the result
+                (((Svc *) instance)->*p)(x, y); // The svc class here inherits from the service class so typecasting is allowed
+
+		*out_len = 0;
+                return true;
+   }
+};
+
+/*
+//void with 1 strings
+template <typename Svc, typename RT, typename T1>
+class OneParamProcedure : public BaseProcedure {
+//   template <typename Svc, typename T2>
+   bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
+                       uint8_t *out_bytes, uint32_t *out_len,
+                       bool *ok) { //override final { 
 
 
 		std::string x;
@@ -503,19 +587,21 @@ class UniversalProcedure : public BaseProcedure {
 		return true;
    }
 };
+*/
 
 // 1 params and a return type: non string
 template <typename Svc, typename RT, typename T1>
-class UniversalProcedure : public BaseProcedure {
+class OneParamProcedure : public BaseProcedure {
+//   template <typename Svc, typename RT, typename T1>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final { 
 
 
 		T1 x;
 		// This function is similar to Decode. We need to return false if buffer
 		// isn't large enough, or fatal error happens during parsing.
-		if (!ProtocolUniversal<T1>::Decode(in_bytes, in_len, ok, x) || !*ok) {
+		if (!Protocol<T1>::Decode(in_bytes, in_len, ok, x) || !*ok) {
 			return false;
 		}
 
@@ -539,13 +625,14 @@ class UniversalProcedure : public BaseProcedure {
    }
 };
 
-
+/*
 // 2 params and a return type: non string
 template <typename Svc, typename RT, typename T1, typename T2>
 class UniversalProcedure : public BaseProcedure {
+//   template <typename Svc, typename RT, typename T1, typename T2>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final { 
 
 
 		T1 x;
@@ -576,12 +663,14 @@ class UniversalProcedure : public BaseProcedure {
    }
 };
 
+
 // 2 params and a return type: first string
 template <typename Svc, typename RT, std::string, typename T2>
 class UniversalProcedure : public BaseProcedure {
+//   template <typename Svc, typename RT, typename T2>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final { 
 
 		std::string x;				   
 		T2 y;
@@ -614,9 +703,10 @@ class UniversalProcedure : public BaseProcedure {
 // 2 params and a return type: second string
 template <typename Svc, typename RT, typename T2, std::string>
 class UniversalProcedure : public BaseProcedure {
+//   template <typename Svc, typename RT, typename T2>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final { 
 			   
 		T1 x;
 		std::string y;
@@ -649,9 +739,10 @@ class UniversalProcedure : public BaseProcedure {
 // 2 params and a return type: second string
 template <typename Svc, typename RT, std::string, std::string>
 class UniversalProcedure : public BaseProcedure {
+//   template <typename Svc, typename RT>
    bool DecodeAndExecute(uint8_t *in_bytes, uint32_t *in_len,
                        uint8_t *out_bytes, uint32_t *out_len,
-                       bool *ok) override final { 
+                       bool *ok) { //override final { 
 			   
 		std::string x;
 		std::string y;
@@ -680,7 +771,7 @@ class UniversalProcedure : public BaseProcedure {
 		return true;
    }
 };
-
+*/
 
 // TASK2: Client-side
 /*class IntResult : public BaseResult {
@@ -805,20 +896,25 @@ public:
 template <typename Svc>
 class Service : public BaseService {
 protected:
-   void Export(int (Svc::*func)(int)) {
+/*   void Export(int (Svc::*func)(int)) {
 		ExportRaw(MemberFunctionPtr::From(func), new IntIntProcedure<Svc>());
+   }
+*/
+   template<typename RT>
+   void Export(RT (Svc::*func)()){
+           ExportRaw(MemberFunctionPtr::From(func), new NoParamProcedure<Svc, RT>());
    }
 
    template<typename RT, typename T1>
    void Export(RT (Svc::*func)(T1)){
-	   ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, RT, T1>());
+	   ExportRaw(MemberFunctionPtr::From(func), new OneParamProcedure<Svc, RT, T1>());
    }
 
    template<typename RT, typename T1, typename T2>
    void Export(RT (Svc::*func)(T1, T2)){
-	   ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, RT, T1, T2>());
+	   ExportRaw(MemberFunctionPtr::From(func), new TwoParamProcedure<Svc, RT, T1, T2>());
    }
-
+/*
    template<void, typename T1>
    void Export(void (Svc::*func)(T1)){
 	   ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, void, T1>());
@@ -826,14 +922,15 @@ protected:
 
    template<void, typename T1, typename T2>
    void Export(void (Svc::*func)(T1, T2)){
-	   ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, void, T1, T2>());
+	   ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, T1, T2>());
    }
-   
+  */
+ 
    /* add this */
    template<typename RT, typename ... Args>
    void Export(RT (Svc::*func)(Args ...)) {
 	//    ExportRaw(MemberFunctionPtr::From(func), new UniversalProcedure<Svc, RT, Args ...>());
-	cout << "unimplemented"
+	std::cout << "unimplemented" << std::endl;
    }
    /* end here */
 };
